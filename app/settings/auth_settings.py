@@ -4,14 +4,15 @@ from passlib.context import CryptContext
 from pydantic import BaseSettings
 from datetime import timedelta, datetime
 
-JWT_SECRET = environ["JWT_SECRET"]
+JWT_SECRET = environ.get("JWT_SECRET", "DEVELOP")
 JWT_ALGORITHM = environ.get("JWT_ALGORITHM", "HS256")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 RESET_PASSWORD_EXPIRATION_MINUTES = environ.get("RESET_PASSWORD_EXPIRATION_MINUTES", 60)
 EXPIRES = timedelta(minutes=int(RESET_PASSWORD_EXPIRATION_MINUTES))
 
-class Settings(BaseSettings):
 
+class Settings(BaseSettings):
+    @staticmethod
     def generate_token(id: str) -> str:
         utcnow = datetime.utcnow()
         expires = utcnow + EXPIRES

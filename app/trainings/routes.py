@@ -12,7 +12,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @router.get('/', response_model=List[TrainingResponse], status_code=status.HTTP_200_OK)
-async def get_users(
+async def get_trainings(
     request: Request,
     queries: TrainingQueryParamsFilter = Depends(),
     limit: int = Query(128, ge=1, le=1024),
@@ -25,6 +25,7 @@ async def get_users(
         trainings_list.append(TrainingResponse.from_mongo(training))
 
     request.app.logger.info(
-        f'Return list of {len(trainings_list)} trainings, with query params: {queries.dict(exclude_none=True)}'
+        f'Return list of {len(trainings_list)} trainings,'
+        + ' with query params: {queries.dict(exclude_none=True)}'
     )
     return trainings_list
