@@ -30,6 +30,7 @@ class Media(BaseModel):
 
 
 class Rating(BaseModel):
+    id_trainer: ObjectIdPydantic
     score: Optional[int] = Field(None, ge=1, le=5)
     comment: Optional[str]
 
@@ -71,8 +72,8 @@ class TrainingDatabase(BaseModel):
     type: TrainingTypes
     difficulty: Difficulty
     media: Optional[list[Media]]
-    blocked: Optional[bool]
     rating: Optional[Rating]
+    blocked: bool = False
 
 
 class TrainingResponse(TrainingDatabase):
@@ -89,5 +90,5 @@ class TrainingResponse(TrainingDatabase):
 
 
 class TrainingQueryParamsFilter(BaseModel):  # TODO: check param types
-    type: str = Query(None, min_length=1, max_length=256)
-    difficulty: str = Query(None, min_length=1, max_length=256)
+    type: TrainingTypes = Query(None, min_length=1, max_length=256)
+    difficulty: Difficulty = Query(None, min_length=1, max_length=256)
