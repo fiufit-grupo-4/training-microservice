@@ -31,7 +31,7 @@ training_example_mock = {
 
 access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
 
-# Mock MongoDB
+
 @pytest.fixture()
 def mongo_mock(monkeypatch):
     mongo_client = mongomock.MongoClient()
@@ -45,7 +45,7 @@ def mongo_mock(monkeypatch):
     monkeypatch.setattr(app, "database", db)
 
 
-def test_post_trainig(mongo_mock):
+def test_post_training(mongo_mock):
     data = {
         "title": "B",
         "description": "BABA",
@@ -59,7 +59,8 @@ def test_post_trainig(mongo_mock):
         headers={"Authorization": f"Bearer {access_token_trainer_example}"},
     )
     response_body = response.json()
-    response_body.pop("id")  # no me interesa el id del training en el test
+    # we don't want to check the training id at the test
+    response_body.pop("id")
 
     assert response.status_code == 201
     assert response_body == {

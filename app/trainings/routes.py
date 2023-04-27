@@ -12,7 +12,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @router.get('/', response_model=List[TrainingResponse], status_code=status.HTTP_200_OK)
-async def get_users(
+async def get_trainings(
     request: Request,
     queries: TrainingQueryParamsFilter = Depends(),
     limit: int = Query(128, ge=1, le=1024),
