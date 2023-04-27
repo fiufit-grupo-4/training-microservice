@@ -56,7 +56,8 @@ class TrainingRequestPost(BaseModel):
             media=self.media,
         ).dict()
 
-        # the "TrainingDatabase" model has an "id" field that is not needed to be created in MongoDB
+        # the "TrainingDatabase" model has an "id" field that
+        # is not needed to be created in MongoDB
         json.pop("id")
         return json
 

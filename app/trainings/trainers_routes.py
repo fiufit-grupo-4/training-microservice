@@ -1,9 +1,7 @@
 import jwt
-from http.client import HTTPException
 from app.settings.auth_baerer import JWTBearer
 from app.trainings.object_id import ObjectIdPydantic
-from fastapi import APIRouter, Depends, Request
-from starlette import status
+from fastapi import APIRouter, Request
 from app.settings.auth_settings import JWT_SECRET
 from app.trainings.models import TrainingRequestPost, TrainingResponse
 from fastapi import Depends, HTTPException, status

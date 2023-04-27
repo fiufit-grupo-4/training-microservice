@@ -32,7 +32,7 @@ class JWTBearer(HTTPBearer):
 
         try:
             payload = jwt.decode(jwtoken, JWT_SECRET, algorithms=JWT_ALGORITHM)
-        except:
+        except Exception:
             payload = None
         if payload:
             isTokenValid = True

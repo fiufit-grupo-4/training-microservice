@@ -25,6 +25,7 @@ async def get_users(
         trainings_list.append(TrainingResponse.from_mongo(training))
 
     request.app.logger.info(
-        f'Return list of {len(trainings_list)} trainings, with query params: {queries.dict(exclude_none=True)}'
+        f'Return list of {len(trainings_list)} trainings,'
+        + ' with query params: {queries.dict(exclude_none=True)}'
     )
     return trainings_list
