@@ -9,10 +9,7 @@ from app.trainings.models import (
     TrainingRequestPost,
     TrainingResponse,
 )
-from app.trainings.object_id import ObjectIdPydantic
-from fastapi import APIRouter, Query, Request
-from app.settings.auth_settings import JWT_SECRET
-from app.trainings.models import TrainingQueryParamsFilter, TrainingRequestPost, TrainingResponse
+
 from fastapi import Depends, HTTPException, status
 from starlette.responses import JSONResponse
 
