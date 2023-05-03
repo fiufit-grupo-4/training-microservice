@@ -28,8 +28,8 @@ async def get_trainings(
     if len(trainings_list) == 0:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content=f'Trainings not found with \
-            query params: {queries.dict(exclude_none=True)}',
+            content=f'Trainings not found with' +
+            'query params: {queries.dict(exclude_none=True)}',
         )
 
     request.app.logger.info(

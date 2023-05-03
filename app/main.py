@@ -36,6 +36,7 @@ async def startup_db_client():
     app.logger = logger
 
     app.database = app.mongodb_client["training_microservice"]
+    # app.database.trainings.delete_many({})
 
 
 @app.on_event("shutdown")
