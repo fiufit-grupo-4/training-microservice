@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from bson import ObjectId
 from fastapi import Query
@@ -29,14 +30,28 @@ class Media(BaseModel):
     url: str
 
 
-class Rating(BaseModel):
-    id_trainer: ObjectIdPydantic
+class Qualification(BaseModel):
+    id_user: ObjectIdPydantic
     score: Optional[int] = Field(None, ge=1, le=5)
     comment: Optional[str]
 
+class QualificationRequestPost(BaseModel):
+    score: Optional[int] = Field(None, ge=1, le=5)
+    comment: Optional[str]
+
+    def encode_json_with(self, id_user: ObjectId, exclude_none):
+        """Encode the json to be inserted in MongoDB"""
+
+        json = Qualification(
+            id_user=ObjectIdPydantic(id_user),
+            score=self.score,
+            comment=self.comment,
+        ).dict(exclude_none=exclude_none)
+
+        return json
+    
 
 ########################################################################
-
 
 class TrainingRequestPost(BaseModel):
     title: str
@@ -54,7 +69,7 @@ class TrainingRequestPost(BaseModel):
             description=self.description,
             type=self.type,
             difficulty=self.difficulty,
-            media=self.media,
+            media=self.media or [],
         ).dict()
 
         # the "TrainingDatabase" model has an "id" field that
@@ -71,8 +86,8 @@ class TrainingDatabase(BaseModel):
     description: str
     type: TrainingTypes
     difficulty: Difficulty
-    media: Optional[list[Media]]
-    rating: Optional[Rating]
+    media: list[Media] = []
+    qualification: list[Qualification] = []
     blocked: bool = False
 
 
@@ -86,9 +101,11 @@ class TrainingResponse(TrainingDatabase):
         if not training:
             return training
         id = training.pop('_id', None)
+        
         return cls(**dict(training, id=id))
 
 
 class TrainingQueryParamsFilter(BaseModel):  # TODO: check param types
     type: TrainingTypes = Query(None, min_length=1, max_length=256)
     difficulty: Difficulty = Query(None, min_length=1, max_length=256)
+    id_trainer: ObjectIdPydantic = Query(None)

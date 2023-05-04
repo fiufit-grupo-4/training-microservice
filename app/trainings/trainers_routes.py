@@ -16,7 +16,7 @@ from starlette.responses import JSONResponse
 trainers_router = APIRouter()
 
 
-def get_trainer_id(token: str = Depends(JWTBearer())) -> ObjectId:
+def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
     """Get trainer id from the token"""
 
     print(token)
@@ -38,7 +38,7 @@ def get_trainer_id(token: str = Depends(JWTBearer())) -> ObjectId:
 def add_training(
     request: Request,
     request_body: TrainingRequestPost,
-    id_trainer: ObjectId = Depends(get_trainer_id),
+    id_trainer: ObjectId = Depends(get_user_id),
 ):
     trainings = request.app.database["trainings"]
 
@@ -61,7 +61,7 @@ def add_training(
 def get_training_created(
     request: Request,
     queries: TrainingQueryParamsFilter = Depends(),
-    id_trainer: ObjectId = Depends(get_trainer_id),
+    id_trainer: ObjectId = Depends(get_user_id),
     limit: int = Query(128, ge=1, le=1024),
 ):
     trainings = request.app.database["trainings"]
@@ -86,3 +86,4 @@ def get_training_created(
         + f'{query}'
     )
     return trainings_list
+

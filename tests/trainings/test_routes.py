@@ -23,7 +23,7 @@ training_example_mock = {
         {"media_type": "video", "url": "hola.mp4"},
     ],
     "blocked": False,
-    "rating": None,
+    "qualification": [],
 }
 
 
@@ -51,7 +51,7 @@ def test_get_trainings(mongo_mock):
             'difficulty': 'Fácil',
             'media': [{'media_type': 'image', 'url': 'chau.png'},
                       {'media_type': 'video', 'url': 'hola.mp4'}],
-            'rating': None,
+            'qualification': [],
             'title': 'A',
             'type': 'Caminata'
         }
