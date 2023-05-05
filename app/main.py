@@ -18,11 +18,6 @@ app = FastAPI()
 logger = logging.getLogger("app")
 
 
-@app.get("/", tags=["Home"])
-def get_root() -> dict:
-    return {"message": "OK"}
-
-
 @app.on_event("startup")
 async def startup_db_client():
     try:

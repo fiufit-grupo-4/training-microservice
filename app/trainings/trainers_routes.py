@@ -33,7 +33,8 @@ def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
     "/",
     response_model=TrainingResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create training",
+    summary="Create training by me",
+    tags=["CRUD Trainings for Trainers - Training microservice"],
 )
 def add_training(
     request: Request,
@@ -56,7 +57,8 @@ def add_training(
     "/",
     response_model=List[TrainingResponse],
     status_code=status.HTTP_200_OK,
-    summary="Get trainings created by me",
+    summary="Get all trainings created by me. Include query params to filter",
+    tags=["CRUD Trainings for Trainers - Training microservice"],
 )
 def get_training_created(
     request: Request,
@@ -86,4 +88,3 @@ def get_training_created(
         + f'{query}'
     )
     return trainings_list
-
