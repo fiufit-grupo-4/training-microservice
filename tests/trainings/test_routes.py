@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from app.main import app, logger
 
 from app.trainings.object_id import ObjectIdPydantic
-from app.trainings.routes import router
+from app.trainings.trainings import router_trainings
 
 
 client = TestClient(app)

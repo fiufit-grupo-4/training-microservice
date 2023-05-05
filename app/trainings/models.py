@@ -29,6 +29,9 @@ class Media(BaseModel):
     url: str = Field(None, example="https://www.example.com/image.png")
 
 
+########################################################################
+
+
 class Score(BaseModel):
     id_user: ObjectIdPydantic
     qualification: int = Field(None, ge=1, le=5)
@@ -59,6 +62,9 @@ class ScoreResponse(BaseModel):
             return training
 
         return cls(**dict(training))
+
+
+########################################################################
 
 
 class Comment(BaseModel):
@@ -151,8 +157,24 @@ class TrainingResponse(TrainingDatabase):
 
         return cls(**dict(training, id=id))
 
+class ScoreInt(int):
+    score: int 
+
+    def __iter__(self):
+        yield from {
+            'scores.qualification': self.score
+        }.items()
 
 class TrainingQueryParamsFilter(BaseModel):  # TODO: check param types
+    title: str = Query(None, min_length=1, max_length=256)
+    description: str = Query(None, min_length=1, max_length=256)
     type: TrainingTypes = Query(None, min_length=1, max_length=256)
     difficulty: Difficulty = Query(None, min_length=1, max_length=256)
     id_trainer: ObjectIdPydantic = Query(None)
+    score: ScoreInt = Query(None, ge=1, le=5)
+    
+    def dict(self, *args, **kwargs):
+            data = super().dict(*args, **kwargs)
+            if data.get('score'):
+                data['scores.qualification'] = data.pop('score')
+            return data
