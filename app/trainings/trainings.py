@@ -28,7 +28,7 @@ async def get_trainings(
     limit: int = Query(128, ge=1, le=1024),
 ):
     trainings = request.app.database["trainings"]
-        
+
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
         trainings_list.append(TrainingResponse.from_mongo(training))

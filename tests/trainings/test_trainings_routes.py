@@ -19,11 +19,12 @@ training_example_mock = {
     "type": "Caminata",
     "difficulty": "Fácil",
     "media": [
-        {"media_type": "image", "url": "chau.png"},
+        {"media_type": "image", "url": "chauuu.png"},
         {"media_type": "video", "url": "hola.mp4"},
     ],
     "blocked": False,
-    "qualification": [],
+    "scores": [],
+    "comments": []
 }
 
 
@@ -46,13 +47,14 @@ def test_get_trainings(mongo_mock):
     response_body = response.json()
 
     assert all(item in response_body[0] for item in {
-            'blocked': False,
-            'description': 'string',
-            'difficulty': 'Fácil',
-            'media': [{'media_type': 'image', 'url': 'chau.png'},
-                      {'media_type': 'video', 'url': 'hola.mp4'}],
-            'qualification': [],
-            'title': 'A',
-            'type': 'Caminata'
-        }
+        'blocked': False,
+        'description': 'string',
+        'difficulty': 'Fácil',
+        'media': [{'media_type': 'image', 'url': 'chau.png'},
+                  {'media_type': 'video', 'url': 'hola.mp4'}],
+        'scores': [],
+        'comments': [],
+        'title': 'A',
+        'type': 'Caminata'
+    }
     )

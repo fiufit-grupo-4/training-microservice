@@ -31,12 +31,12 @@ def add_score(
     id_user: ObjectId = Depends(get_user_id),
 ):
     trainings = request.app.database["trainings"]
-    current_score = trainings.find_one(
-        {"_id": training_id, "scores": {"$elemMatch": {"id_user": id_user}}},
-        {"_id": 0, "scores.$": 1},
+    current_score = trainings.find(
+        {"_id": training_id, "scores": {"$elemMatch": {"id_user": id_user}}}
     )
+    current_score = list(current_score)
 
-    if current_score is None:
+    if current_score is None or len(current_score) == 0:
         score_json = request_body.encode_json_with(id_user)
         result = trainings.update_one(
             {"_id": training_id, "scores.id_user": {"$ne": id_user}},
@@ -44,19 +44,19 @@ def add_score(
         )
         if result.modified_count == 1:
             request.app.logger.info(
-                f'Score calification for user {id_user} created' +
-                f'successfully on Training {training_id}'
+                f'Score calification for user {id_user} created'
+                + f'successfully on Training {training_id}'
             )
             return ScoreResponse.from_mongo(score_json)
         else:
             request.app.logger.info(
-                f'Score calification for user {id_user} could not be' +
-                f'created on Training {training_id}'
+                f'Score calification for user {id_user} could not be'
+                + f'created on Training {training_id}'
             )
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content=f'Score calification for user {id_user} ' +
-                f'could not be created on Training {training_id}',
+                content=f'Score calification for user {id_user} '
+                + f'could not be created on Training {training_id}',
             )
     else:
         logger.info(
@@ -65,8 +65,8 @@ def add_score(
         )
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
-            content=f'Score calification for {id_user} already' +
-                f' exist on Training {training_id}',
+            content=f'Score calification for {id_user} already'
+            + f' exist on Training {training_id}',
         )
 
 
@@ -82,20 +82,20 @@ def modify_score(
     id_user: ObjectId = Depends(get_user_id),
 ):
     trainings = request.app.database["trainings"]
-    current_score = trainings.find_one(
-        {"_id": training_id, "scores": {"$elemMatch": {"id_user": id_user}}},
-        {"_id": 0, "scores.$": 1},
+    current_score = trainings.find(
+        {"_id": training_id, "scores": {"$elemMatch": {"id_user": id_user}}}
     )
+    current_score = list(current_score)
 
-    if current_score is None:
+    if current_score is None or len(current_score) == 0:
         logger.info(
-            f'Score calification for {id_user} does not exist ' +
-                f'on Training {training_id}'
+            f'Score calification for {id_user} does not exist '
+            + f'on Training {training_id}'
         )
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content=f'Score calification for {id_user} does not' +
-                f' exist on Training {training_id}',
+            content=f'Score calification for {id_user} does not'
+            + f' exist on Training {training_id}',
         )
     else:
         request_body = request_body.encode_json_with(id_user)
@@ -105,19 +105,19 @@ def modify_score(
         )
         if result.modified_count == 1:
             logger.info(
-                f'Score calification for {id_user} updated' +
-                f' successfully on Training {training_id}'
+                f'Score calification for {id_user} updated'
+                + f' successfully on Training {training_id}'
             )
             return ScoreResponse.from_mongo(request_body)
         else:
             logger.info(
-                f'Score calification for {id_user} could not' +
-                f' be updated on Training {training_id}'
+                f'Score calification for {id_user} could not'
+                + f' be updated on Training {training_id}'
             )
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content=f'Score calification for {id_user} could not' +
-                f' be updated on Training {training_id}',
+                content=f'Score calification for {id_user} could not'
+                + f' be updated on Training {training_id}',
             )
 
 
@@ -138,21 +138,21 @@ def delete_score(
 
     if result.modified_count == 1:
         logger.info(
-            f'Score calification of {id_user} deleted' +
-                f' successfully on Training {training_id}'
+            f'Score calification of {id_user} deleted'
+            + f' successfully on Training {training_id}'
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=f'Score calification of {id_user} deleted' +
-                f' successfully on Training {training_id}',
+            content=f'Score calification of {id_user} deleted'
+            + f' successfully on Training {training_id}',
         )
     else:
         logger.info(
-            f'Score calification of User {id_user} not' +
-                f' found on Training {training_id}'
+            f'Score calification of User {id_user} not'
+            + f' found on Training {training_id}'
         )
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content=f'Score calification of User {id_user} not' +
-                f' found on Training {training_id}',
+            content=f'Score calification of User {id_user} not'
+            + f' found on Training {training_id}',
         )

@@ -157,13 +157,13 @@ class TrainingResponse(TrainingDatabase):
 
         return cls(**dict(training, id=id))
 
+
 class ScoreInt(int):
-    score: int 
+    score: int
 
     def __iter__(self):
-        yield from {
-            'scores.qualification': self.score
-        }.items()
+        yield from {'scores.qualification': self.score}.items()
+
 
 class TrainingQueryParamsFilter(BaseModel):  # TODO: check param types
     title: str = Query(None, min_length=1, max_length=256)
@@ -172,9 +172,9 @@ class TrainingQueryParamsFilter(BaseModel):  # TODO: check param types
     difficulty: Difficulty = Query(None, min_length=1, max_length=256)
     id_trainer: ObjectIdPydantic = Query(None)
     score: ScoreInt = Query(None, ge=1, le=5)
-    
+
     def dict(self, *args, **kwargs):
-            data = super().dict(*args, **kwargs)
-            if data.get('score'):
-                data['scores.qualification'] = data.pop('score')
-            return data
+        data = super().dict(*args, **kwargs)
+        if data.get('score'):
+            data['scores.qualification'] = data.pop('score')
+        return data
