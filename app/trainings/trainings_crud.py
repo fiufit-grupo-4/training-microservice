@@ -13,13 +13,12 @@ from app.trainings.models import (
 from fastapi import Depends, HTTPException, status
 from starlette.responses import JSONResponse
 
-trainers_router = APIRouter()
+router_trainers = APIRouter()
 
 
-def get_trainer_id(token: str = Depends(JWTBearer())) -> ObjectId:
-    """Get trainer id from the token"""
+def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
+    """Get user id from the token"""
 
-    print(token)
     try:
         token_data_trainer = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         return ObjectId(token_data_trainer["id"])
@@ -29,16 +28,16 @@ def get_trainer_id(token: str = Depends(JWTBearer())) -> ObjectId:
         )
 
 
-@trainers_router.post(
+@router_trainers.post(
     "/",
     response_model=TrainingResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create training",
+    summary="Create training by me",
 )
 def add_training(
     request: Request,
     request_body: TrainingRequestPost,
-    id_trainer: ObjectId = Depends(get_trainer_id),
+    id_trainer: ObjectId = Depends(get_user_id),
 ):
     trainings = request.app.database["trainings"]
 
@@ -52,16 +51,16 @@ def add_training(
     return TrainingResponse.from_mongo(training_mongo)
 
 
-@trainers_router.get(
+@router_trainers.get(
     "/",
     response_model=List[TrainingResponse],
     status_code=status.HTTP_200_OK,
-    summary="Get trainings created by me",
+    summary="Get all trainings created by me. Include query params to filter",
 )
 def get_training_created(
     request: Request,
     queries: TrainingQueryParamsFilter = Depends(),
-    id_trainer: ObjectId = Depends(get_trainer_id),
+    id_trainer: ObjectId = Depends(get_user_id),
     limit: int = Query(128, ge=1, le=1024),
 ):
     trainings = request.app.database["trainings"]

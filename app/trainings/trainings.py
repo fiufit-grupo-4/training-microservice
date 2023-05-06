@@ -3,17 +3,25 @@ from fastapi import APIRouter, Depends, Query, Request
 from passlib.context import CryptContext
 from starlette import status
 from typing import List
-from app.trainings.models import TrainingQueryParamsFilter, TrainingResponse
+from app.trainings.models import (
+    TrainingQueryParamsFilter,
+    TrainingResponse,
+)
 from app.trainings.object_id import ObjectIdPydantic
 from starlette.responses import JSONResponse
 
 
 logger = logging.getLogger('app')
-router = APIRouter()
+router_trainings = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-@router.get('/', response_model=List[TrainingResponse], status_code=status.HTTP_200_OK)
+@router_trainings.get(
+    '/',
+    response_model=List[TrainingResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get all trainings. Include query params to filter",
+)
 async def get_trainings(
     request: Request,
     queries: TrainingQueryParamsFilter = Depends(),
@@ -40,11 +48,11 @@ async def get_trainings(
     return trainings_list
 
 
-@router.get(
+@router_trainings.get(
     "/{training_id}",
     response_model=TrainingResponse,
     status_code=status.HTTP_200_OK,
-    summary="Get a training by id",
+    summary="Get a specific training by training_id",
 )
 def get_training_by_id(
     request: Request,

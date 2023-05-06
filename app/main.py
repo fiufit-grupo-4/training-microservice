@@ -5,9 +5,10 @@ from logging.config import dictConfig
 from .log_config import logconfig
 from os import environ
 from dotenv import load_dotenv
-from app.trainings.routes import router
-from app.trainings.trainers_routes import trainers_router
-
+from app.trainings.trainings import router_trainings
+from app.trainings.trainings_crud import router_trainers
+from app.trainings.scores import router_scores
+from app.trainings.comments import router_comments
 
 load_dotenv()
 
@@ -16,11 +17,6 @@ MONGODB_URI = environ["MONGODB_URI"]
 dictConfig(logconfig)
 app = FastAPI()
 logger = logging.getLogger("app")
-
-
-@app.get("/", tags=["Home"])
-def get_root() -> dict:
-    return {"message": "OK"}
 
 
 @app.on_event("startup")
@@ -45,5 +41,19 @@ async def shutdown_db_client():
     logger.info("Shutdown APP")
 
 
-app.include_router(router, prefix="/trainings")
-app.include_router(trainers_router, prefix="/trainers/me/trainings")
+app.include_router(
+    router_trainings,
+    prefix="/trainings",
+    tags=["General routes - Training microservice"],
+)
+app.include_router(
+    router_trainers,
+    prefix="/trainers/me/trainings",
+    tags=["CRUD for Trainers - Training microservice"],
+)
+app.include_router(
+    router_scores, prefix="/trainings", tags=["Scores - Training microservice"]
+)
+app.include_router(
+    router_comments, prefix="/trainings", tags=["Comments - Training microservice"]
+)
