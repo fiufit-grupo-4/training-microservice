@@ -158,6 +158,14 @@ class TrainingResponse(TrainingDatabase):
         return cls(**dict(training, id=id))
 
 
+class UpdateTrainingRequest(BaseModel):
+    title: Optional[str]
+    description: Optional[str]
+    type: Optional[TrainingTypes]
+    difficulty: Optional[Difficulty]
+    media: Optional[list[Media]]
+
+
 class ScoreInt(int):
     score: int
 

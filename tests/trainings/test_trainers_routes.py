@@ -37,9 +37,12 @@ access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
 def mongo_mock(monkeypatch):
     mongo_client = mongomock.MongoClient()
     db = mongo_client.get_database("training_microservice")
-    col = db.get_collection("users")
+    col = db.get_collection("trainings")
 
-    col.insert_one(training_example_mock)
+    result = col.insert_one(training_example_mock)
+
+    global training_id_example_mock
+    training_id_example_mock = result.inserted_id
 
     app.database = db
     app.logger = logger
@@ -75,3 +78,27 @@ def test_post_training(mongo_mock):
         "scores": [],
         "comments": []
     }
+
+#@patch('app.trainings.crud.get_database')
+def test_delete_training(mongo_mock):
+
+    # Success
+    training_id = training_id_example_mock
+    app.logger.warning(training_id)
+    a = client.get("/trainings")
+    app.logger.warning(a.json())
+    # Call the API to delete the training
+    response = client.delete(f'/trainers/me/trainings/{training_id}', headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    response_body = response.json()
+    # Check the response
+    assert response.status_code == 200
+    assert response_body == f'Training {training_id} deleted successfully'
+
+
+    # Failure
+    training_id = str(ObjectId())
+    app.logger.warning(training_id)
+    response = client.delete(f'/trainers/me/trainings/{training_id}', headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    response_body = response.json()
+    assert response.status_code == 404
+    assert response_body == f"Training {training_id} not found to delete"
