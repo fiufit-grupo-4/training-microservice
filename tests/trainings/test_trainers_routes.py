@@ -48,6 +48,8 @@ def mongo_mock(monkeypatch):
     app.logger = logger
     monkeypatch.setattr(app, "database", db)
 
+    return col
+
 
 def test_post_training(mongo_mock):
     data = {
@@ -79,25 +81,56 @@ def test_post_training(mongo_mock):
         "comments": []
     }
 
-#@patch('app.trainings.crud.get_database')
+
+def test_update_training(mongo_mock):
+
+    # Success
+    update_data = {"title": "Test training name", "description": "Test description"}
+    response = client.patch(f'/trainers/me/trainings/{training_id_example_mock}',
+                            json=update_data,
+                            headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    assert response.status_code == 200
+    response_body = response.json()
+    assert response_body == f'Training {training_id_example_mock} updated successfully'
+
+    trainings = app.database.get_collection("trainings")
+
+    training = trainings.find_one({"_id": training_id_example_mock})
+
+    assert training['title'] == 'Test training name'
+    assert training["description"] == "Test description"
+
+
+    # Failure
+    training_id = str(ObjectId())
+
+    update_data = {"name": "Test training name", "description": "Test description"}
+    response = client.patch(
+        f"/trainers/me/trainings/{training_id}",
+        json=update_data,
+        headers={"Authorization": f"Bearer {access_token_trainer_example}"}
+    )
+    response_body = response.json()
+    assert response.status_code == 404
+    assert response_body == f'Training {training_id} not found'
+
 def test_delete_training(mongo_mock):
 
     # Success
     training_id = training_id_example_mock
-    app.logger.warning(training_id)
-    a = client.get("/trainings")
-    app.logger.warning(a.json())
-    # Call the API to delete the training
-    response = client.delete(f'/trainers/me/trainings/{training_id}', headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+
+
+    response = client.delete(f'/trainers/me/trainings/{training_id}',
+                             headers={"Authorization": f"Bearer {access_token_trainer_example}"})
     response_body = response.json()
-    # Check the response
+
     assert response.status_code == 200
     assert response_body == f'Training {training_id} deleted successfully'
 
 
     # Failure
     training_id = str(ObjectId())
-    app.logger.warning(training_id)
+
     response = client.delete(f'/trainers/me/trainings/{training_id}', headers={"Authorization": f"Bearer {access_token_trainer_example}"})
     response_body = response.json()
     assert response.status_code == 404

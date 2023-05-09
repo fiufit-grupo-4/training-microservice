@@ -109,7 +109,7 @@ def test_post_comment_invalids(mongo_mock):
     
 
     
-def test_patch_comment_success(mongo_mock):
+def test_modify_comment_success(mongo_mock):
     training = client.get("/trainings", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
@@ -142,7 +142,7 @@ def test_patch_comment_success(mongo_mock):
     assert training["comments"][0].get("detail") == "AsdAsd patched"
     
     
-def test_patch_comment_invalids(mongo_mock):
+def test_modify_comment_invalids(mongo_mock):
     training = client.get("/trainings", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
