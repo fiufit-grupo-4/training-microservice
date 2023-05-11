@@ -46,9 +46,8 @@ def mongo_mock(monkeypatch):
 
     app.database = db
     app.logger = logger
-    monkeypatch.setattr(app, "database", db)
 
-    return col
+    monkeypatch.setattr(app, "database", db)
 
 
 def test_post_training(mongo_mock):
@@ -83,7 +82,7 @@ def test_post_training(mongo_mock):
 
 
 def test_update_training(mongo_mock):
-
+    
     # Success
     update_data = {"title": "Test training name", "description": "Test description"}
     response = client.patch(f'/trainers/me/trainings/{training_id_example_mock}',
@@ -100,7 +99,6 @@ def test_update_training(mongo_mock):
     assert training['title'] == 'Test training name'
     assert training["description"] == "Test description"
 
-
     # Failure
     training_id = str(ObjectId())
 
@@ -114,24 +112,26 @@ def test_update_training(mongo_mock):
     assert response.status_code == 404
     assert response_body == f'Training {training_id} not found'
 
+
 def test_delete_training(mongo_mock):
-
     # Success
-    training_id = training_id_example_mock
+    training_id = str(training_id_example_mock)
 
-
-    response = client.delete(f'/trainers/me/trainings/{training_id}',
-                             headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    response = client.delete(f'/trainers/me/trainings/{training_id}', headers={"Authorization": f"Bearer {access_token_trainer_example}"})
     response_body = response.json()
 
     assert response.status_code == 200
     assert response_body == f'Training {training_id} deleted successfully'
 
+    trainings = app.database["trainings"]
+    deleted_training = trainings.find_one({"_id": training_id_example_mock})
+    assert deleted_training is None
 
     # Failure
     training_id = str(ObjectId())
 
     response = client.delete(f'/trainers/me/trainings/{training_id}', headers={"Authorization": f"Bearer {access_token_trainer_example}"})
     response_body = response.json()
+
     assert response.status_code == 404
     assert response_body == f"Training {training_id} not found to delete"

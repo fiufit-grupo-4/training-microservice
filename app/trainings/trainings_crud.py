@@ -105,7 +105,7 @@ async def update_training(
             content='No values especified to update',
         )
     trainings = request.app.database["trainings"]
-    training = trainings.find_one({"_id": training_id})
+    training = trainings.find_one({"_id": training_id, "id_trainer": str(id_trainer)})
 
     if not training:
         request.app.logger.info(f'Training {training_id} not found to update')
@@ -138,7 +138,7 @@ def delete_training(
     id_trainer: ObjectId = Depends(get_user_id),
 ):
     trainings = request.app.database["trainings"]
-    result = trainings.delete_one({"_id": training_id})
+    result = trainings.delete_one({"_id": training_id, "id_trainer": str(id_trainer)})
     if result.deleted_count == 1:
         request.app.logger.info(f'Deleting training {training_id}')
         return JSONResponse(
