@@ -14,14 +14,15 @@ training_example_mock = {
     "title": "A",
     "description": "string",
     "type": "Caminata",
-    "difficulty": "Fácil",
+    "difficulty": 1,
     "media": [
         {"media_type": "image", "url": "chauuu.png"},
         {"media_type": "video", "url": "hola.mp4"},
     ],
     "blocked": False,
     "scores": [],
-    "comments": []
+    "comments": [],
+    "place": "CABA"
 }
 
 access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
