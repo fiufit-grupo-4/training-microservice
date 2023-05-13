@@ -105,6 +105,7 @@ class TrainingRequestPost(BaseModel):
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
     media: Optional[list[Media]]
+    place: str
 
     def encode_json_with(self, id_trainer: ObjectIdPydantic):
         """Encode the json to be inserted in MongoDB"""
@@ -116,6 +117,7 @@ class TrainingRequestPost(BaseModel):
             type=self.type,
             difficulty=self.difficulty,
             media=self.media or [],
+            place=self.place,
         ).dict()
 
         # the "TrainingDatabase" model has an "id" field that
@@ -136,6 +138,7 @@ class TrainingDatabase(BaseModel):
     comments: list[Comment] = []
     scores: list[Score] = []
     blocked: bool = False
+    place: str
 
 
 class TrainingResponse(TrainingDatabase):
@@ -158,6 +161,7 @@ class UpdateTrainingRequest(BaseModel):
     type: Optional[TrainingTypes]
     difficulty: Optional[int] = Field(None, ge=1, le=5)
     media: Optional[list[Media]]
+    place: Optional[str]
 
 
 class ScoreInt(int):
@@ -174,6 +178,7 @@ class TrainingQueryParamsFilter(BaseModel):  # TODO: check param types
     difficulty: int = Query(None, ge=1, le=5)
     id_trainer: ObjectIdPydantic = Query(None)
     score: ScoreInt = Query(None, ge=1, le=5)
+    place: str = Query(None, min_length=1, max_length=256)
 
     def dict(self, *args, **kwargs):
         data = super().dict(*args, **kwargs)

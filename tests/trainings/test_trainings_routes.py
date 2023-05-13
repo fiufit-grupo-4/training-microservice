@@ -24,7 +24,8 @@ training_example_mock = {
     ],
     "blocked": False,
     "scores": [],
-    "comments": []
+    "comments": [],
+    "place": "CABA"
 }
 
 
@@ -55,6 +56,7 @@ def test_get_trainings(mongo_mock):
         'scores': [],
         'comments': [],
         'title': 'A',
-        'type': 'Caminata'
+        'type': 'Caminata',
+        "place": "CABA"
     }
     )

@@ -26,7 +26,8 @@ training_example_mock = {
     ],
     "blocked": False,
     "scores": [],
-    "comments": []
+    "comments": [],
+    "place": "CABA"
 }
 
 
@@ -56,6 +57,7 @@ def test_post_training(mongo_mock):
         "description": "BABA",
         "type": "Caminata",
         "difficulty": 1,
+        "place": "CABA"
     }
 
     response = client.post(
@@ -77,7 +79,8 @@ def test_post_training(mongo_mock):
         "media": [],
         "blocked": False,
         "scores": [],
-        "comments": []
+        "comments": [],
+        "place": "CABA"
     }
 
 
