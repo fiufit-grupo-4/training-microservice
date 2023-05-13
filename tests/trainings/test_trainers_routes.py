@@ -19,7 +19,7 @@ training_example_mock = {
     "title": "A",
     "description": "string",
     "type": "Caminata",
-    "difficulty": "Fácil",
+    "difficulty": 1,
     "media": [
         {"media_type": "image", "url": "chauuu.png"},
         {"media_type": "video", "url": "hola.mp4"},
@@ -55,7 +55,7 @@ def test_post_training(mongo_mock):
         "title": "B",
         "description": "BABA",
         "type": "Caminata",
-        "difficulty": "Fácil",
+        "difficulty": 1,
     }
 
     response = client.post(
@@ -73,7 +73,7 @@ def test_post_training(mongo_mock):
         "title": "B",
         "description": "BABA",
         "type": "Caminata",
-        "difficulty": "Fácil",
+        "difficulty": 1,
         "media": [],
         "blocked": False,
         "scores": [],

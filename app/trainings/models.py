@@ -13,12 +13,6 @@ class TrainingTypes(str, Enum):
     running = "Running"
 
 
-class Difficulty(str, Enum):
-    facil = "Fácil"
-    intermedia = "Intermedia"
-    dificil = "Difícil"
-
-
 class MediaType(str, Enum):
     image = "image"
     video = "video"
@@ -109,7 +103,7 @@ class TrainingRequestPost(BaseModel):
     title: str
     description: str
     type: TrainingTypes
-    difficulty: Difficulty
+    difficulty: int = Field(None, ge=1, le=5)
     media: Optional[list[Media]]
 
     def encode_json_with(self, id_trainer: ObjectIdPydantic):
@@ -137,7 +131,7 @@ class TrainingDatabase(BaseModel):
     title: str
     description: str
     type: TrainingTypes
-    difficulty: Difficulty
+    difficulty: int = Field(None, ge=1, le=5)
     media: list[Media] = []
     comments: list[Comment] = []
     scores: list[Score] = []
@@ -162,7 +156,7 @@ class UpdateTrainingRequest(BaseModel):
     title: Optional[str]
     description: Optional[str]
     type: Optional[TrainingTypes]
-    difficulty: Optional[Difficulty]
+    difficulty: Optional[int] = Field(None, ge=1, le=5)
     media: Optional[list[Media]]
 
 
@@ -177,7 +171,7 @@ class TrainingQueryParamsFilter(BaseModel):  # TODO: check param types
     title: str = Query(None, min_length=1, max_length=256)
     description: str = Query(None, min_length=1, max_length=256)
     type: TrainingTypes = Query(None, min_length=1, max_length=256)
-    difficulty: Difficulty = Query(None, min_length=1, max_length=256)
+    difficulty: int = Query(None, ge=1, le=5)
     id_trainer: ObjectIdPydantic = Query(None)
     score: ScoreInt = Query(None, ge=1, le=5)
 
