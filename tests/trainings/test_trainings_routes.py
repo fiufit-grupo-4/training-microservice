@@ -17,14 +17,15 @@ training_example_mock = {
     "title": "A",
     "description": "string",
     "type": "Caminata",
-    "difficulty": "Fácil",
+    "difficulty": 1,
     "media": [
         {"media_type": "image", "url": "chauuu.png"},
         {"media_type": "video", "url": "hola.mp4"},
     ],
     "blocked": False,
     "scores": [],
-    "comments": []
+    "comments": [],
+    "place": "CABA"
 }
 
 
@@ -49,12 +50,13 @@ def test_get_trainings(mongo_mock):
     assert all(item in response_body[0] for item in {
         'blocked': False,
         'description': 'string',
-        'difficulty': 'Fácil',
+        'difficulty': 1,
         'media': [{'media_type': 'image', 'url': 'chau.png'},
                   {'media_type': 'video', 'url': 'hola.mp4'}],
         'scores': [],
         'comments': [],
         'title': 'A',
-        'type': 'Caminata'
+        'type': 'Caminata',
+        "place": "CABA"
     }
     )

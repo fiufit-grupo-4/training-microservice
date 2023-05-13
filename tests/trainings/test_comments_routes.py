@@ -14,14 +14,15 @@ training_example_mock = {
     "title": "A",
     "description": "string",
     "type": "Caminata",
-    "difficulty": "Fácil",
+    "difficulty": 1,
     "media": [
         {"media_type": "image", "url": "chauuu.png"},
         {"media_type": "video", "url": "hola.mp4"},
     ],
     "blocked": False,
     "scores": [],
-    "comments": []
+    "comments": [],
+    "place": "CABA"
 }
 
 access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
@@ -109,7 +110,7 @@ def test_post_comment_invalids(mongo_mock):
     
 
     
-def test_patch_comment_success(mongo_mock):
+def test_modify_comment_success(mongo_mock):
     training = client.get("/trainings", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
@@ -142,7 +143,7 @@ def test_patch_comment_success(mongo_mock):
     assert training["comments"][0].get("detail") == "AsdAsd patched"
     
     
-def test_patch_comment_invalids(mongo_mock):
+def test_modify_comment_invalids(mongo_mock):
     training = client.get("/trainings", json={"title": "A"}).json()[0]
     assert not training["comments"]
     

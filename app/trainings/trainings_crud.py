@@ -8,10 +8,13 @@ from app.trainings.models import (
     TrainingQueryParamsFilter,
     TrainingRequestPost,
     TrainingResponse,
+    UpdateTrainingRequest,
 )
 
 from fastapi import Depends, HTTPException, status
 from starlette.responses import JSONResponse
+
+from app.trainings.object_id import ObjectIdPydantic
 
 router_trainers = APIRouter()
 
@@ -85,3 +88,151 @@ def get_training_created(
         + f'{query}'
     )
     return trainings_list
+
+
+@router_trainers.patch('/{training_id}', status_code=status.HTTP_200_OK)
+async def update_training(
+    request: Request,
+    training_id: ObjectIdPydantic,
+    update_training_request: UpdateTrainingRequest,
+    id_trainer: ObjectId = Depends(get_user_id),
+):
+    trainings = request.app.database["trainings"]
+    trainings = trainings.find({"_id": training_id})
+    request.app.logger.error('UPDATE_TRAINING1')
+    request.app.logger.critical(list(trainings))
+    fields_to_change = update_training_request.dict(exclude_none=True)
+    if not fields_to_change or len(fields_to_change) == 0:
+        request.app.logger.info('No values especified in body to update')
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content='No values especified to update',
+        )
+    trainings = request.app.database["trainings"]
+    training = trainings.find_one({"_id": training_id, "id_trainer": id_trainer})
+    request.app.logger.error('UPDATE_TRAINING2')
+    request.app.logger.critical(training)
+    if not training:
+        request.app.logger.info(f'Training {training_id} not found to update')
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f'Training {training_id} not found',
+        )
+    update_result = trainings.update_one(
+        {"_id": training_id}, {"$set": fields_to_change}
+    )
+    if update_result.modified_count > 0:
+        request.app.logger.info(
+            f'Updating training {training_id} values {list(fields_to_change.keys())}'
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=f'Training {training_id} updated successfully',
+        )
+    request.app.logger.info(f'Training {training_id} was not updated')
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=f'Training {training_id} not updated',
+    )
+
+
+@router_trainers.delete("/{training_id}", status_code=status.HTTP_200_OK)
+def delete_training(
+    request: Request,
+    training_id: ObjectIdPydantic,
+    id_trainer: ObjectId = Depends(get_user_id),
+):
+    trainings = request.app.database["trainings"]
+    result = trainings.delete_one({"_id": training_id, "id_trainer": id_trainer})
+    if result.deleted_count == 1:
+        request.app.logger.info(f'Deleting training {training_id}')
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=f'Training {training_id} deleted successfully',
+        )
+    request.app.logger.info(f'Training {training_id} not found to delete')
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content=f'Training {training_id} not found to delete',
+    )
+
+
+@router_trainers.patch('/{training_id}/unblock', status_code=status.HTTP_200_OK)
+def unblock_status(
+    training_id: ObjectIdPydantic,
+    request: Request,
+    id_trainer: ObjectId = Depends(get_user_id),
+):
+    trainings = request.app.database["trainings"]
+    training = trainings.find_one({"_id": training_id, "id_trainer": id_trainer})
+
+    if not training:
+        request.app.logger.info(f'Training {training_id} not found to block')
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f'Training {training_id} not found',
+        )
+
+    if not training["blocked"]:
+        request.app.logger.info(f'Training {training_id} was not blocked!')
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=f"Training {training_id} is not blocked",
+        )
+
+    update_result = trainings.update_one(
+        {"_id": training_id}, {"$set": {"blocked": False}}
+    )
+
+    if update_result.modified_count > 0:
+        request.app.logger.info(f'Training {training_id} was successfully unblocked')
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=f'Training {training_id} successfully unblocked',
+        )
+    request.app.logger.info(f'Training {training_id} was not unblocked')
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=f'Training {training_id} not unblocked',
+    )
+
+
+@router_trainers.patch('/{training_id}/block', status_code=status.HTTP_200_OK)
+def block_status(
+    training_id: ObjectIdPydantic,
+    request: Request,
+    id_trainer: ObjectId = Depends(get_user_id),
+):
+    trainings = request.app.database["trainings"]
+    training = trainings.find_one({"_id": training_id, "id_trainer": id_trainer})
+
+    if not training:
+        request.app.logger.info(f'Training {training_id} not found to block')
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f'Training {training_id} not found',
+        )
+
+    if training["blocked"]:
+        request.app.logger.info(f'Training {training_id} was already blocked!')
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=f"Training {training_id} is already blocked",
+        )
+
+    update_result = trainings.update_one(
+        {"_id": training_id}, {"$set": {"blocked": True}}
+    )
+
+    if update_result.modified_count > 0:
+        request.app.logger.info(f'Training {training_id} was successfully blocked')
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=f'Training {training_id} successfully blocked',
+        )
+
+    request.app.logger.info(f'Training {training_id} was not blocked')
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=f'Training {training_id} not blocked',
+    )
