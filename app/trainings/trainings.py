@@ -48,6 +48,79 @@ async def get_trainings(
     return trainings_list
 
 
+@router_trainings.patch('/{training_id}/block', status_code=status.HTTP_200_OK)
+def block_status(training_id: ObjectIdPydantic, request: Request):
+    trainings = request.app.database["trainings"]
+    training = trainings.find_one({"_id": training_id})
+
+    if not training:
+        request.app.logger.info(f'Training {training_id} not found to block')
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f'Training {training_id} not found',
+        )
+
+    if training["blocked"]:
+        request.app.logger.info(f'Training {training_id} was already blocked!')
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=f"Training {training_id} is already blocked",
+        )
+
+    update_result = trainings.update_one(
+        {"_id": training_id}, {"$set": {"blocked": True}}
+    )
+
+    if update_result.modified_count > 0:
+        request.app.logger.info(f'Training {training_id} was successfully blocked')
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=f'Training {training_id} successfully blocked',
+        )
+
+    request.app.logger.info(f'Training {training_id} was not blocked')
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=f'Training {training_id} not blocked',
+    )
+
+
+@router_trainings.patch('/{training_id}/unblock', status_code=status.HTTP_200_OK)
+def unblock_status(training_id: ObjectIdPydantic, request: Request):
+    trainings = request.app.database["trainings"]
+    training = trainings.find_one({"_id": training_id})
+
+    if not training:
+        request.app.logger.info(f'Training {training_id} not found to block')
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f'Training {training_id} not found',
+        )
+
+    if not training["blocked"]:
+        request.app.logger.info(f'Training {training_id} was not blocked!')
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=f"Training {training_id} is not blocked",
+        )
+
+    update_result = trainings.update_one(
+        {"_id": training_id}, {"$set": {"blocked": False}}
+    )
+
+    if update_result.modified_count > 0:
+        request.app.logger.info(f'Training {training_id} was successfully unblocked')
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=f'Training {training_id} successfully unblocked',
+        )
+    request.app.logger.info(f'Training {training_id} was not unblocked')
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=f'Training {training_id} not unblocked',
+    )
+
+
 @router_trainings.get(
     "/{training_id}",
     response_model=TrainingResponse,
