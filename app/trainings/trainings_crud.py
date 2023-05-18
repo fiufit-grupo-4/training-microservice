@@ -54,9 +54,10 @@ def add_training(
     if res := TrainingResponse.from_mongo(training_mongo):
         return res
     else:
+        request.app.logger.error("Failed to create training for trainer")
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content=f'Training {training_id} not found to get',
+            content=f'Failed to create training for trainer with id {id_trainer}',
         )
 
 
