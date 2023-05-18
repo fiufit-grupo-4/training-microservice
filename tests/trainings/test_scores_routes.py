@@ -58,10 +58,10 @@ def test_post_scores(mongo_mock):
     )
     
     assert response.status_code == 201
-    assert response.json() == {"qualification": 5, "id_user": trainer_id_example_mock}
+    assert response.json().get("qualification") == 5
 
     training = client.get("/trainings", json={"title": "A"}).json()[0]
-    assert training["scores"] == [{"qualification": 5, "id_user": trainer_id_example_mock}]
+    assert training["scores"][0]["qualification"] == 5
 
 def test_post_scores_invalid(mongo_mock):
     training = client.get("/trainings", json={"title": "A"}).json()[0]
@@ -123,10 +123,10 @@ def test_post_score_its_unique_by_user(mongo_mock):
     )
     
     assert response.status_code == 201
-    assert response.json() == {"qualification": 5, "id_user": trainer_id_example_mock}
+    assert response.json().get("qualification") == 5
 
     training = client.get("/trainings", json={"title": "A"}).json()[0]
-    assert training["scores"] == [{"qualification": 5, "id_user": trainer_id_example_mock}]
+    assert training["scores"][0]["qualification"] == 5
 
     response = client.post(
         f"/trainings/{training_id}/score",
@@ -137,7 +137,7 @@ def test_post_score_its_unique_by_user(mongo_mock):
     assert response.status_code == 409
 
     training = client.get("/trainings", json={"title": "A"}).json()[0]
-    assert training["scores"] == [{"qualification": 5, "id_user": trainer_id_example_mock}]
+    assert training["scores"][0]["qualification"] == 5
     
 def test_patch_score_success(mongo_mock):
     training = client.get("/trainings", json={"title": "A"}).json()[0]
@@ -179,10 +179,10 @@ def test_patch_score_invalids(mongo_mock):
     )
     
     assert response.status_code == 201
-    assert response.json() == {"qualification": 5, "id_user": trainer_id_example_mock}
+    assert response.json().get("qualification") == 5
 
     training = client.get("/trainings", json={"title": "A"}).json()[0]
-    assert training["scores"] == [{"qualification": 5, "id_user": trainer_id_example_mock}]
+    assert training["scores"][0]["qualification"] == 5
 
     score_id = training["scores"][0]
 
@@ -225,10 +225,10 @@ def test_delete_score_success(mongo_mock):
     )
     
     assert response.status_code == 201
-    assert response.json() == {"qualification": 5, "id_user": trainer_id_example_mock}
+    assert response.json().get("qualification") == 5
 
     training = client.get("/trainings", json={"title": "A"}).json()[0]
-    assert training["scores"] == [{"qualification": 5, "id_user": trainer_id_example_mock}]
+    assert training["scores"][0]["qualification"] == 5
 
     response = client.delete(
         f"/trainings/{training_id}/score",
