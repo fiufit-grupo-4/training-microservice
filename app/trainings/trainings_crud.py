@@ -51,7 +51,14 @@ def add_training(
 
     request.app.logger.info(f'New training {training_id} created.')
 
-    return TrainingResponse.from_mongo(training_mongo)
+    if res := TrainingResponse.from_mongo(training_mongo):
+        return res
+    else:
+        request.app.logger.error("Failed to create training for trainer")
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f'Failed to create training for trainer with id {id_trainer}',
+        )
 
 
 @router_trainers.get(
@@ -73,7 +80,8 @@ def get_training_created(
 
     trainings_list = []
     for training in trainings.find(query).limit(limit):
-        trainings_list.append(TrainingResponse.from_mongo(training))
+        if res := TrainingResponse.from_mongo(training):
+            trainings_list.append(res)
 
     if len(trainings_list) == 0:
         return JSONResponse(

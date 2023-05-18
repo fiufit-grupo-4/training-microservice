@@ -4,6 +4,7 @@ from fastapi import Query
 from pydantic import BaseConfig, BaseModel, Field
 from enum import Enum
 from app.trainings.object_id import ObjectIdPydantic
+from app.trainings.user_small import UserResponseSmall
 
 ########################################################################
 
@@ -105,7 +106,6 @@ class TrainingRequestPost(BaseModel):
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
     media: Optional[list[Media]]
-    place: str
 
     def encode_json_with(self, id_trainer: ObjectIdPydantic):
         """Encode the json to be inserted in MongoDB"""
@@ -117,7 +117,6 @@ class TrainingRequestPost(BaseModel):
             type=self.type,
             difficulty=self.difficulty,
             media=self.media or [],
-            place=self.place,
         ).dict()
 
         # the "TrainingDatabase" model has an "id" field that
@@ -138,10 +137,20 @@ class TrainingDatabase(BaseModel):
     comments: list[Comment] = []
     scores: list[Score] = []
     blocked: bool = False
-    place: str
 
 
-class TrainingResponse(TrainingDatabase):
+class TrainingResponse(BaseModel):
+    id: ObjectIdPydantic = None
+    trainer: UserResponseSmall
+    title: str
+    description: str
+    type: TrainingTypes
+    difficulty: int = Field(None, ge=1, le=5)
+    media: list[Media] = []
+    comments: list[Comment] = []
+    scores: list[Score] = []
+    blocked: bool = False
+
     class Config(BaseConfig):
         json_encoders = {ObjectId: lambda id: str(id)}  # convert ObjectId into str
 
@@ -150,9 +159,17 @@ class TrainingResponse(TrainingDatabase):
         """We must convert _id into "id" and"""
         if not training:
             return training
-        id = training.pop('_id', None)
+        id_training = training.pop('_id', None)
 
-        return cls(**dict(training, id=id))
+        id_trainer = training.pop('id_trainer', None)
+        result = UserResponseSmall.from_service(id_trainer, id_training)
+
+        if not result:
+            return None
+
+        training['trainer'] = result.dict()
+
+        return cls(**dict(training, id=id_training))
 
 
 class UpdateTrainingRequest(BaseModel):
@@ -161,7 +178,6 @@ class UpdateTrainingRequest(BaseModel):
     type: Optional[TrainingTypes]
     difficulty: Optional[int] = Field(None, ge=1, le=5)
     media: Optional[list[Media]]
-    place: Optional[str]
 
 
 class ScoreInt(int):
@@ -178,7 +194,6 @@ class TrainingQueryParamsFilter(BaseModel):  # TODO: check param types
     difficulty: int = Query(None, ge=1, le=5)
     id_trainer: ObjectIdPydantic = Query(None)
     score: ScoreInt = Query(None, ge=1, le=5)
-    place: str = Query(None, min_length=1, max_length=256)
 
     def dict(self, *args, **kwargs):
         data = super().dict(*args, **kwargs)

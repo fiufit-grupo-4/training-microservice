@@ -31,7 +31,8 @@ async def get_trainings(
 
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
-        trainings_list.append(TrainingResponse.from_mongo(training))
+        if res := TrainingResponse.from_mongo(training):
+            trainings_list.append(res)
 
     if len(trainings_list) == 0:
         return JSONResponse(
@@ -141,4 +142,11 @@ def get_training_by_id(
             content=f'Training {training_id} not found to get',
         )
 
-    return TrainingResponse.from_mongo(training)
+    if res := TrainingResponse.from_mongo(training):
+        return res
+    else:
+        request.app.logger.error(f"Failed to search training {training_id}'")
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f'Failed to search training {training_id}',
+        )

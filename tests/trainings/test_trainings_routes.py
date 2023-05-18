@@ -1,4 +1,6 @@
 from bson import ObjectId
+from requests.models import Response
+
 import mongomock
 import pytest
 from fastapi.testclient import TestClient
@@ -25,11 +27,22 @@ training_example_mock = {
     ],
     "blocked": False,
     "scores": [],
-    "comments": [],
-    "place": "CABA"
+    "comments": []
 }
 
 access_token_trainer_example = Settings.generate_token(str(trainer_id_example_mock))
+
+def mock_get_fail(*args, **kwargs):
+    response = Response()
+    response.status_code = 500
+    response.json = lambda: {"error": "Internal Server Error"}
+    return response
+
+def mock_get(*args, **kwargs):
+    response = Response()
+    response.status_code = 200
+    response.json = lambda: {"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez"}
+    return response
 
 @pytest.fixture()
 def mongo_mock(monkeypatch):
@@ -44,6 +57,7 @@ def mongo_mock(monkeypatch):
     app.database = db
     app.logger = logger
     monkeypatch.setattr(app, "database", db)
+    monkeypatch.setattr("app.trainings.user_small.ServiceUsers.get", mock_get)
 
 
 def test_get_trainings(mongo_mock):
@@ -51,7 +65,6 @@ def test_get_trainings(mongo_mock):
     assert response.status_code == 200
 
     response_body = response.json()
-
     assert all(item in response_body[0] for item in {
         'blocked': False,
         'description': 'string',
@@ -62,7 +75,11 @@ def test_get_trainings(mongo_mock):
         'comments': [],
         'title': 'A',
         'type': 'Caminata',
-        "place": "CABA"
+        'trainer': {
+            'id': str(trainer_id_example_mock),
+            'name': 'Juan',
+            'lastname': 'Perez'
+        }
     }
     )
 
@@ -119,3 +136,9 @@ def test_unblock_status(mongo_mock):
     assert response.status_code == 200
     assert response.json() == f"Training {training_id_example_mock} successfully unblocked"
 
+def test_get_training_by_id_failed(mongo_mock,monkeypatch):
+    monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_fail)
+    response = client.get(f"/trainings/{training_id_example_mock}")
+
+    assert response.status_code == 404
+    assert response.json() == f'Failed to search training {training_id_example_mock}'

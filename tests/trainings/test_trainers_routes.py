@@ -1,5 +1,6 @@
 from black import nullcontext
 from bson import ObjectId
+from requests.models import Response
 import mongomock
 import pytest
 from fastapi.testclient import TestClient
@@ -26,13 +27,23 @@ training_example_mock = {
     ],
     "blocked": False,
     "scores": [],
-    "comments": [],
-    "place": "CABA"
+    "comments": []
 }
 
 
 access_token_trainer_example = Settings.generate_token(str(trainer_id_example_mock))
 
+def mock_get_fail(*args, **kwargs):
+    response = Response()
+    response.status_code = 500
+    response.json = lambda: {"error": "Internal Server Error"}
+    return response
+
+def mock_get(*args, **kwargs):
+    response = Response()
+    response.status_code = 200
+    response.json = lambda: {"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez"}
+    return response
 
 @pytest.fixture()
 def mongo_mock(monkeypatch):
@@ -49,6 +60,7 @@ def mongo_mock(monkeypatch):
     app.logger = logger
 
     monkeypatch.setattr(app, "database", db)
+    monkeypatch.setattr("app.services.ServiceUsers.get", mock_get)
 
 
 def test_post_training(mongo_mock):
@@ -56,8 +68,7 @@ def test_post_training(mongo_mock):
         "title": "B",
         "description": "BABA",
         "type": "Caminata",
-        "difficulty": 1,
-        "place": "CABA"
+        "difficulty": 1
     }
 
     response = client.post(
@@ -71,7 +82,6 @@ def test_post_training(mongo_mock):
 
     assert response.status_code == 201
     assert response_body == {
-        "id_trainer": str(trainer_id_example_mock),
         "title": "B",
         "description": "BABA",
         "type": "Caminata",
@@ -80,9 +90,30 @@ def test_post_training(mongo_mock):
         "blocked": False,
         "scores": [],
         "comments": [],
-        "place": "CABA"
+        "trainer": {
+            "id": str(trainer_id_example_mock),
+            "name": "Juan",
+            "lastname": "Perez"
+        }
     }
 
+def test_post_training_failed(mongo_mock, monkeypatch):
+    data = {
+        "title": "B",
+        "description": "BABA",
+        "type": "Caminata",
+        "difficulty": 1
+    }
+    monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_fail)
+    access_token_trainer_example_other = Settings.generate_token(str("6465a459b9cb604fdd382a28"))
+    response = client.post(
+        "trainers/me/trainings/",
+        json=data,
+        headers={"Authorization": f"Bearer {access_token_trainer_example_other}"},
+    )
+    response_body = response.json()
+    assert response.status_code == 404
+    assert response_body == "Failed to create training for trainer with id 6465a459b9cb604fdd382a28"
 
 def test_update_training(mongo_mock):
     
