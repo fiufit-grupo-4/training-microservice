@@ -145,7 +145,8 @@ def get_training_by_id(
     if res := TrainingResponse.from_mongo(training):
         return res
     else:
+        request.app.logger.error(f"Failed to search training {training_id}'")
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content=f'Training {training_id} not found to get',
+            content=f'Failed to search training {training_id}',
         )

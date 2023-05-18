@@ -32,6 +32,12 @@ training_example_mock = {
 
 access_token_trainer_example = Settings.generate_token(str(trainer_id_example_mock))
 
+def mock_get_fail(*args, **kwargs):
+    response = Response()
+    response.status_code = 500
+    response.json = lambda: {"error": "Internal Server Error"}
+    return response
+
 def mock_get(*args, **kwargs):
     response = Response()
     response.status_code = 200
@@ -130,3 +136,9 @@ def test_unblock_status(mongo_mock):
     assert response.status_code == 200
     assert response.json() == f"Training {training_id_example_mock} successfully unblocked"
 
+def test_get_training_by_id_failed(mongo_mock,monkeypatch):
+    monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_fail)
+    response = client.get(f"/trainings/{training_id_example_mock}")
+
+    assert response.status_code == 404
+    assert response.json() == f'Failed to search training {training_id_example_mock}'
