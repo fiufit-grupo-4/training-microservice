@@ -21,8 +21,7 @@ training_example_mock = {
     ],
     "blocked": False,
     "scores": [],
-    "comments": [],
-    "place": "CABA"
+    "comments": []
 }
 
 access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)

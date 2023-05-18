@@ -25,8 +25,7 @@ training_example_mock = {
     ],
     "blocked": False,
     "scores": [],
-    "comments": [],
-    "place": "CABA"
+    "comments": []
 }
 
 access_token_trainer_example = Settings.generate_token(str(trainer_id_example_mock))
@@ -61,8 +60,7 @@ def test_get_trainings(mongo_mock):
         'scores': [],
         'comments': [],
         'title': 'A',
-        'type': 'Caminata',
-        "place": "CABA"
+        'type': 'Caminata'
     }
     )
 
