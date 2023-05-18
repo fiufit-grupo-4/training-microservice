@@ -1,4 +1,5 @@
 from bson import ObjectId
+from requests.models import Response
 import mongomock
 import pytest
 from fastapi.testclient import TestClient
@@ -26,6 +27,12 @@ training_example_mock = {
 
 access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
 
+def mock_get(*args, **kwargs):
+    response = Response()
+    response.status_code = 200
+    response.json = lambda: {"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez"}
+    return response
+
 @pytest.fixture()
 def mongo_mock(monkeypatch):
     mongo_client = mongomock.MongoClient()
@@ -36,6 +43,7 @@ def mongo_mock(monkeypatch):
     app.database = db
     app.logger = logger
     monkeypatch.setattr(app, "database", db)
+    monkeypatch.setattr("app.trainings.user_small.ServiceUsers.get", mock_get)
 
 
 def test_post_scores(mongo_mock):

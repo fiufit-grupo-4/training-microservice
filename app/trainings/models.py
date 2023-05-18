@@ -4,8 +4,10 @@ from fastapi import Query
 from pydantic import BaseConfig, BaseModel, Field
 from enum import Enum
 from app.trainings.object_id import ObjectIdPydantic
+from app.trainings.user_small import UserResponseSmall
 
 ########################################################################
+
 
 class TrainingTypes(str, Enum):
     caminata = "Caminata"
@@ -137,7 +139,18 @@ class TrainingDatabase(BaseModel):
     blocked: bool = False
 
 
-class TrainingResponse(TrainingDatabase):
+class TrainingResponse(BaseModel):
+    id: ObjectIdPydantic = None
+    trainer: UserResponseSmall
+    title: str
+    description: str
+    type: TrainingTypes
+    difficulty: int = Field(None, ge=1, le=5)
+    media: list[Media] = []
+    comments: list[Comment] = []
+    scores: list[Score] = []
+    blocked: bool = False
+
     class Config(BaseConfig):
         json_encoders = {ObjectId: lambda id: str(id)}  # convert ObjectId into str
 
@@ -146,9 +159,17 @@ class TrainingResponse(TrainingDatabase):
         """We must convert _id into "id" and"""
         if not training:
             return training
-        id = training.pop('_id', None)
+        id_training = training.pop('_id', None)
 
-        return cls(**dict(training, id=id))
+        id_trainer = training.pop('id_trainer', None)
+        result = UserResponseSmall.from_service(id_trainer, id_training)
+
+        if not result:
+            return None
+
+        training['trainer'] = result.dict()
+
+        return cls(**dict(training, id=id_training))
 
 
 class UpdateTrainingRequest(BaseModel):
@@ -157,6 +178,7 @@ class UpdateTrainingRequest(BaseModel):
     type: Optional[TrainingTypes]
     difficulty: Optional[int] = Field(None, ge=1, le=5)
     media: Optional[list[Media]]
+
 
 class ScoreInt(int):
     score: int

@@ -1,4 +1,5 @@
 from black import nullcontext
+from requests.models import Response
 from bson import ObjectId
 import mongomock
 import pytest
@@ -32,6 +33,11 @@ training_example_mock = {
 
 access_token_trainer_example = Settings.generate_token(str(trainer_id_example_mock))
 
+def mock_get(*args, **kwargs):
+    response = Response()
+    response.status_code = 200
+    response.json = lambda: {"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez"}
+    return response
 
 @pytest.fixture()
 def mongo_mock(monkeypatch):
@@ -48,6 +54,7 @@ def mongo_mock(monkeypatch):
     app.logger = logger
 
     monkeypatch.setattr(app, "database", db)
+    monkeypatch.setattr("app.trainings.user_small.ServiceUsers.get", mock_get)
 
 
 def test_post_training(mongo_mock):
@@ -69,7 +76,6 @@ def test_post_training(mongo_mock):
 
     assert response.status_code == 201
     assert response_body == {
-        "id_trainer": str(trainer_id_example_mock),
         "title": "B",
         "description": "BABA",
         "type": "Caminata",
@@ -77,7 +83,12 @@ def test_post_training(mongo_mock):
         "media": [],
         "blocked": False,
         "scores": [],
-        "comments": []
+        "comments": [],
+        "trainer": {
+            "id": str(trainer_id_example_mock),
+            "name": "Juan",
+            "lastname": "Perez",
+        },
     }
 
 
