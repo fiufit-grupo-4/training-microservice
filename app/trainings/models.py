@@ -3,6 +3,7 @@ from bson import ObjectId
 from fastapi import Query
 from pydantic import BaseConfig, BaseModel, Field
 from enum import Enum
+from app.services import ServiceUsers
 from app.trainings.object_id import ObjectIdPydantic
 from app.trainings.user_small import UserResponseSmall
 
@@ -42,7 +43,7 @@ class ScoreRequest(BaseModel):
 
 
 class ScoreResponse(BaseModel):
-    id_user: ObjectIdPydantic
+    user: UserResponseSmall
     qualification: int = Field(None, ge=1, le=5)
 
     class Config(BaseConfig):
@@ -56,6 +57,16 @@ class ScoreResponse(BaseModel):
         if not training:
             return training
 
+        user = ServiceUsers.get(f'/users/{training["id_user"]}')
+
+        if user.status_code == 200:
+            user = user.json()
+
+        else:
+            return None
+
+        training.pop("id_user")
+        training["user"] = UserResponseSmall.from_mongo(user)
         return cls(**dict(training))
 
 
@@ -82,7 +93,7 @@ class CommentRequest(BaseModel):
 
 class CommentResponse(BaseModel):
     id: ObjectIdPydantic
-    id_user: ObjectIdPydantic
+    user: UserResponseSmall
     detail: str = Field(None, min_length=1, max_length=256)
 
     class Config(BaseConfig):
@@ -94,6 +105,16 @@ class CommentResponse(BaseModel):
         if not training:
             return training
 
+        user = ServiceUsers.get(f'/users/{training["id_user"]}')
+
+        if user.status_code == 200:
+            user = user.json()
+
+        else:
+            return None
+
+        training.pop("id_user")
+        training["user"] = UserResponseSmall.from_mongo(user)
         return cls(**dict(training))
 
 
@@ -147,8 +168,8 @@ class TrainingResponse(BaseModel):
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
     media: list[Media] = []
-    comments: list[Comment] = []
-    scores: list[Score] = []
+    comments: list[CommentResponse] = []
+    scores: list[ScoreResponse] = []
     blocked: bool = False
 
     class Config(BaseConfig):
@@ -166,6 +187,17 @@ class TrainingResponse(BaseModel):
 
         if not result:
             return None
+
+        # idem with Comment y Score
+        if training.get('comments'):
+            comments = [
+                CommentResponse.from_mongo(comment) for comment in training['comments']
+            ]
+            training['comments'] = comments
+
+        if training.get('scores'):
+            scores = [ScoreResponse.from_mongo(score) for score in training['scores']]
+            training['scores'] = scores
 
         training['trainer'] = result.dict()
 

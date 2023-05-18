@@ -131,7 +131,7 @@ def test_modify_comment_success(mongo_mock):
     assert response.status_code == 201
     res = response.json()
     res.pop("id")
-    assert res == {"detail": "AsdAsd", "id_user": trainer_id_example_mock}
+    assert res.get("detail") == "AsdAsd"
     
     training = client.get("/trainings", json={"title": "A"}).json()[0]
 
@@ -163,8 +163,7 @@ def test_modify_comment_invalids(mongo_mock):
     
     assert response.status_code == 201
     res = response.json()
-    res.pop("id")
-    assert res == {"detail": "AsdAsd", "id_user": trainer_id_example_mock}
+    assert res.get("detail") == "AsdAsd"
 
     training = client.get("/trainings", json={"title": "A"}).json()[0]
     comment_id = training["comments"][0]["id"]
