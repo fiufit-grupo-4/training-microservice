@@ -24,7 +24,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     status_code=status.HTTP_201_CREATED,
     summary="Create my comment for a training",
 )
-def add_qualification_comment(
+async def add_qualification_comment(
     request: Request,
     request_body: CommentRequest,
     training_id: ObjectIdPydantic,
@@ -40,7 +40,7 @@ def add_qualification_comment(
         logger.info(
             f'Comment of user {id_user} created successfully on Training {training_id}'
         )
-        return CommentResponse.from_mongo(comment_json)
+        return await CommentResponse.from_mongo(comment_json)
     else:
         logger.info(
             f'Comment of user {id_user} could not be created on Training {training_id}'
@@ -58,7 +58,7 @@ def add_qualification_comment(
     status_code=status.HTTP_200_OK,
     summary="Modify my comment for a training",
 )
-def modify_comment(
+async def modify_comment(
     request: Request,
     request_body: CommentRequest,
     training_id: ObjectIdPydantic,
@@ -77,7 +77,7 @@ def modify_comment(
         logger.info(
             f'Comment of user {id_user} modified successfully on Training {training_id}'
         )
-        return CommentResponse.from_mongo(
+        return await CommentResponse.from_mongo(
             request_body.encode_json_with(id_user, comment_id)
         )
     else:

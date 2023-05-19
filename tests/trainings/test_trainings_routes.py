@@ -32,13 +32,13 @@ training_example_mock = {
 
 access_token_trainer_example = Settings.generate_token(str(trainer_id_example_mock))
 
-def mock_get_fail(*args, **kwargs):
+async def mock_get_fail(*args, **kwargs):
     response = Response()
     response.status_code = 500
     response.json = lambda: {"error": "Internal Server Error"}
     return response
 
-def mock_get(*args, **kwargs):
+async def mock_get(*args, **kwargs):
     response = Response()
     response.status_code = 200
     response.json = lambda: {"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez"}

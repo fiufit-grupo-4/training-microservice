@@ -1,18 +1,18 @@
-from fastapi import HTTPException
-import requests
-import app.main as main
-from starlette import status
+import httpx
+from fastapi import HTTPException, status
 from os import environ
+import app.main as main
 
 USER_SERVICE_URL = environ.get('USER_SERVICE_URL', 'http://user-microservice:7500')
 
 
 class ServiceUsers:
     @staticmethod
-    def get(path):
+    async def get(path):
         try:
-            result = requests.get(USER_SERVICE_URL + f'{path}')
-            return result
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"{USER_SERVICE_URL}{path}")
+                return response
         except Exception:
             main.logger.error('User service cannot be accessed')
             raise HTTPException(

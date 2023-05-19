@@ -37,7 +37,7 @@ def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
     status_code=status.HTTP_201_CREATED,
     summary="Create training by me",
 )
-def add_training(
+async def add_training(
     request: Request,
     request_body: TrainingRequestPost,
     id_trainer: ObjectId = Depends(get_user_id),
@@ -51,7 +51,7 @@ def add_training(
 
     request.app.logger.info(f'New training {training_id} created.')
 
-    if res := TrainingResponse.from_mongo(training_mongo):
+    if res := await TrainingResponse.from_mongo(training_mongo):
         return res
     else:
         request.app.logger.error("Failed to create training for trainer")
@@ -67,7 +67,7 @@ def add_training(
     status_code=status.HTTP_200_OK,
     summary="Get all trainings created by me. Include query params to filter",
 )
-def get_training_created(
+async def get_training_created(
     request: Request,
     queries: TrainingQueryParamsFilter = Depends(),
     id_trainer: ObjectId = Depends(get_user_id),
@@ -80,7 +80,7 @@ def get_training_created(
 
     trainings_list = []
     for training in trainings.find(query).limit(limit):
-        if res := TrainingResponse.from_mongo(training):
+        if res := await TrainingResponse.from_mongo(training):
             trainings_list.append(res)
 
     if len(trainings_list) == 0:
