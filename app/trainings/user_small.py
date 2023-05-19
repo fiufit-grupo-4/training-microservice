@@ -24,7 +24,7 @@ class UserResponseSmall(BaseModel):
 
     @classmethod
     async def from_service(cls, id_user, id_training):
-        user = await ServiceUsers.get(f'/users/{id_user}')
+        user = await ServiceUsers.get(f'/users/{id_user}?map_trainings=false')
 
         if user.status_code == 200:
             user = user.json()

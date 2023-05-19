@@ -12,7 +12,7 @@ async def mock_get_other(*args, **kwargs):
 
 async def mock_get_200(*args, **kwargs):
     # args[0] tiene "/users/id"
-    id = args[0].split("/")[-1]
+    id = args[0].split("/")[-1].split("?")[0]
     response = Response()
     response.status_code = 200
     response.json = lambda: {"id" : id, "name": "Juan", "lastname": "Perez"}

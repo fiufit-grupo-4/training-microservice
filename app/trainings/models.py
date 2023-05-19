@@ -57,7 +57,9 @@ class ScoreResponse(BaseModel):
         if not training:
             return training
 
-        user = await ServiceUsers.get(f'/users/{training["id_user"]}')
+        user = await ServiceUsers.get(
+            f'/users/{training["id_user"]}' + '?map_trainings=false'
+        )
 
         if user.status_code == 200:
             user = user.json()
@@ -105,7 +107,9 @@ class CommentResponse(BaseModel):
         if not training:
             return training
 
-        user = await ServiceUsers.get(f'/users/{training["id_user"]}')
+        user = await ServiceUsers.get(
+            f'/users/{training["id_user"]}?map_trainings=false'
+        )
 
         if user.status_code == 200:
             user = user.json()
