@@ -31,7 +31,7 @@ async def get_trainings(
 
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
-        if res := TrainingResponse.from_mongo(training):
+        if res := await TrainingResponse.from_mongo(training):
             trainings_list.append(res)
 
     if len(trainings_list) == 0:
@@ -128,7 +128,7 @@ def unblock_status(training_id: ObjectIdPydantic, request: Request):
     status_code=status.HTTP_200_OK,
     summary="Get a specific training by training_id",
 )
-def get_training_by_id(
+async def get_training_by_id(
     request: Request,
     training_id: ObjectIdPydantic,
 ):
@@ -142,7 +142,7 @@ def get_training_by_id(
             content=f'Training {training_id} not found to get',
         )
 
-    if res := TrainingResponse.from_mongo(training):
+    if res := await TrainingResponse.from_mongo(training):
         return res
     else:
         request.app.logger.error(f"Failed to search training {training_id}'")

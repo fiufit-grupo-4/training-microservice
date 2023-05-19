@@ -27,7 +27,7 @@ training_example_mock = {
 
 access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
 
-def mock_get(*args, **kwargs):
+async def mock_get(*args, **kwargs):
     response = Response()
     response.status_code = 200
     response.json = lambda: {"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez"}

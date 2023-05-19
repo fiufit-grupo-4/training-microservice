@@ -52,12 +52,14 @@ class ScoreResponse(BaseModel):
         }  # convert ObjectId into str
 
     @classmethod
-    def from_mongo(cls, training: dict):
+    async def from_mongo(cls, training: dict):
         """We must convert ObjectId(id_user) into ObjectIdPydantic(id_user)"""
         if not training:
             return training
 
-        user = ServiceUsers.get(f'/users/{training["id_user"]}')
+        user = await ServiceUsers.get(
+            f'/users/{training["id_user"]}' + '?map_trainings=false'
+        )
 
         if user.status_code == 200:
             user = user.json()
@@ -100,12 +102,14 @@ class CommentResponse(BaseModel):
         json_encoders = {ObjectId: lambda id: str(id)}  # convert ObjectId into str
 
     @classmethod
-    def from_mongo(cls, training: dict):
+    async def from_mongo(cls, training: dict):
         """We must convert ObjectId(id) into ObjectIdPydantic(id)"""
         if not training:
             return training
 
-        user = ServiceUsers.get(f'/users/{training["id_user"]}')
+        user = await ServiceUsers.get(
+            f'/users/{training["id_user"]}?map_trainings=false'
+        )
 
         if user.status_code == 200:
             user = user.json()
@@ -176,14 +180,14 @@ class TrainingResponse(BaseModel):
         json_encoders = {ObjectId: lambda id: str(id)}  # convert ObjectId into str
 
     @classmethod
-    def from_mongo(cls, training: dict):
+    async def from_mongo(cls, training: dict):
         """We must convert _id into "id" and"""
         if not training:
             return training
         id_training = training.pop('_id', None)
 
         id_trainer = training.pop('id_trainer', None)
-        result = UserResponseSmall.from_service(id_trainer, id_training)
+        result = await UserResponseSmall.from_service(id_trainer, id_training)
 
         if not result:
             return None
@@ -191,12 +195,15 @@ class TrainingResponse(BaseModel):
         # idem with Comment y Score
         if training.get('comments'):
             comments = [
-                CommentResponse.from_mongo(comment) for comment in training['comments']
+                await CommentResponse.from_mongo(comment)
+                for comment in training['comments']
             ]
             training['comments'] = comments
 
         if training.get('scores'):
-            scores = [ScoreResponse.from_mongo(score) for score in training['scores']]
+            scores = [
+                await ScoreResponse.from_mongo(score) for score in training['scores']
+            ]
             training['scores'] = scores
 
         training['trainer'] = result.dict()

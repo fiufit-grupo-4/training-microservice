@@ -24,7 +24,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     status_code=status.HTTP_201_CREATED,
     summary="Create my unique score qualitifation for training",
 )
-def add_score(
+async def add_score(
     request: Request,
     request_body: ScoreRequest,
     training_id: ObjectIdPydantic,
@@ -47,7 +47,7 @@ def add_score(
                 f'Score calification for user {id_user} created'
                 + f'successfully on Training {training_id}'
             )
-            return ScoreResponse.from_mongo(score_json)
+            return await ScoreResponse.from_mongo(score_json)
         else:
             request.app.logger.info(
                 f'Score calification for user {id_user} could not be'
@@ -75,7 +75,7 @@ def add_score(
     status_code=status.HTTP_200_OK,
     summary="Modify my unique score qualitifation for an training",
 )
-def modify_score(
+async def modify_score(
     request: Request,
     request_body: ScoreRequest,
     training_id: ObjectIdPydantic,
@@ -108,7 +108,7 @@ def modify_score(
                 f'Score calification for {id_user} updated'
                 + f' successfully on Training {training_id}'
             )
-            return ScoreResponse.from_mongo(request_body)
+            return await ScoreResponse.from_mongo(request_body)
         else:
             logger.info(
                 f'Score calification for {id_user} could not'
