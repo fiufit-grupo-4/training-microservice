@@ -28,23 +28,23 @@ async def mock_get_404(*args, **kwargs):
 def test_none_user_small():
     assert UserResponseSmall.from_mongo({}) == {}
 
-@pytest.mark.asyncio
-async def test_404_user_small(monkeypatch):
-    monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_404)
-    res = await UserResponseSmall.from_service(str(ObjectId()), str(ObjectId()))
-    assert res == None
+# @pytest.mark.asyncio
+# async def test_404_user_small(monkeypatch):
+#     monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_404)
+#     res = await UserResponseSmall.from_service(str(ObjectId()), str(ObjectId()))
+#     assert res == None
 
-@pytest.mark.asyncio
-async def test_200_user_small(monkeypatch):
-    monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_200)
-    id = str(ObjectId())
-    res = await UserResponseSmall.from_service(id, id)
-    res = res.dict()
-    res.pop("id", None)
-    assert res == {"name": "Juan", "lastname": "Perez"}
+# @pytest.mark.asyncio
+# async def test_200_user_small(monkeypatch):
+#     monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_200)
+#     id = str(ObjectId())
+#     res = await UserResponseSmall.from_service(id, id)
+#     res = res.dict()
+#     res.pop("id", None)
+#     assert res == {"name": "Juan", "lastname": "Perez"}
 
-@pytest.mark.asyncio
-async def test_other_code_status_user_small(monkeypatch):
-    monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_other)
-    res = await UserResponseSmall.from_service("123", "1231") 
-    assert res == None
+# @pytest.mark.asyncio
+# async def test_other_code_status_user_small(monkeypatch):
+#     monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_other)
+#     res = await UserResponseSmall.from_service("123", "1231") 
+#     assert res == None

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from bson import ObjectId
 import jwt
 from app.settings.auth_baerer import JWTBearer
@@ -51,7 +51,8 @@ async def add_training(
 
     request.app.logger.info(f'New training {training_id} created.')
 
-    if res := await TrainingResponse.from_mongo(training_mongo):
+    if res := TrainingResponse.from_mongo(training_mongo):
+        await TrainingResponse.map_users([res])
         return res
     else:
         request.app.logger.error("Failed to create training for trainer")
@@ -72,6 +73,7 @@ async def get_training_created(
     queries: TrainingQueryParamsFilter = Depends(),
     id_trainer: ObjectId = Depends(get_user_id),
     limit: int = Query(128, ge=1, le=1024),
+    map_users: Optional[bool] = True,
 ):
     trainings = request.app.database["trainings"]
 
@@ -80,7 +82,7 @@ async def get_training_created(
 
     trainings_list = []
     for training in trainings.find(query).limit(limit):
-        if res := await TrainingResponse.from_mongo(training):
+        if res := TrainingResponse.from_mongo(training):
             trainings_list.append(res)
 
     if len(trainings_list) == 0:
@@ -90,11 +92,15 @@ async def get_training_created(
             + f'query params: {queries.dict(exclude_none=True)}',
         )
 
+    if map_users:
+        await TrainingResponse.map_users(trainings_list)
+
     request.app.logger.info(
         f'Return list of {len(trainings_list)} trainings,'
         + ' with query params:'
         + f'{query}'
     )
+
     return trainings_list
 
 
@@ -149,6 +155,9 @@ def delete_training(
     id_trainer: ObjectId = Depends(get_user_id),
 ):
     trainings = request.app.database["trainings"]
+    request.app.logger.info(
+        f'Finding training {training_id} to delete of trainer {id_trainer}'
+    )
     result = trainings.delete_one({"_id": training_id, "id_trainer": id_trainer})
     if result.deleted_count == 1:
         request.app.logger.info(f'Deleting training {training_id}')

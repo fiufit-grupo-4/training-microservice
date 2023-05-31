@@ -2,7 +2,7 @@ import logging
 from fastapi import APIRouter, Depends, Query, Request
 from passlib.context import CryptContext
 from starlette import status
-from typing import List
+from typing import List, Optional
 from app.trainings.models import (
     TrainingQueryParamsFilter,
     TrainingResponse,
@@ -26,13 +26,17 @@ async def get_trainings(
     request: Request,
     queries: TrainingQueryParamsFilter = Depends(),
     limit: int = Query(128, ge=1, le=1024),
+    map_users: Optional[bool] = True,
 ):
     trainings = request.app.database["trainings"]
 
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
-        if res := await TrainingResponse.from_mongo(training):
+        if res := TrainingResponse.from_mongo(training):
             trainings_list.append(res)
+
+    if map_users:
+        await TrainingResponse.map_users(trainings_list)
 
     if len(trainings_list) == 0:
         return JSONResponse(
@@ -129,8 +133,7 @@ def unblock_status(training_id: ObjectIdPydantic, request: Request):
     summary="Get a specific training by training_id",
 )
 async def get_training_by_id(
-    request: Request,
-    training_id: ObjectIdPydantic,
+    request: Request, training_id: ObjectIdPydantic, map_users: Optional[bool] = True
 ):
     trainings = request.app.database["trainings"]
 
@@ -142,7 +145,9 @@ async def get_training_by_id(
             content=f'Training {training_id} not found to get',
         )
 
-    if res := await TrainingResponse.from_mongo(training):
+    if res := TrainingResponse.from_mongo(training):
+        if map_users:
+            await res.map_users([res])
         return res
     else:
         request.app.logger.error(f"Failed to search training {training_id}'")

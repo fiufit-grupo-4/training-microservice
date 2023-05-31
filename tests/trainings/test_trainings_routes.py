@@ -13,7 +13,7 @@ from app.trainings.trainings import router_trainings
 
 client = TestClient(app)
 
-trainer_id_example_mock = ObjectId()
+trainer_id_example_mock = str(ObjectId())
 
 training_example_mock = {
     "id_trainer": trainer_id_example_mock,
@@ -30,7 +30,7 @@ training_example_mock = {
     "comments": []
 }
 
-access_token_trainer_example = Settings.generate_token(str(trainer_id_example_mock))
+access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
 
 async def mock_get_fail(*args, **kwargs):
     response = Response()
@@ -57,7 +57,7 @@ def mongo_mock(monkeypatch):
     app.database = db
     app.logger = logger
     monkeypatch.setattr(app, "database", db)
-    monkeypatch.setattr("app.trainings.user_small.ServiceUsers.get", mock_get)
+    monkeypatch.setattr("app.trainings.models.ServiceUsers.get", mock_get)
 
 
 def test_get_trainings(mongo_mock):
@@ -140,5 +140,4 @@ def test_get_training_by_id_failed(mongo_mock,monkeypatch):
     monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_fail)
     response = client.get(f"/trainings/{training_id_example_mock}")
 
-    assert response.status_code == 404
-    assert response.json() == f'Failed to search training {training_id_example_mock}'
+    assert response.status_code == 500

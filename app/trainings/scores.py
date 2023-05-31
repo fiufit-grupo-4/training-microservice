@@ -47,14 +47,14 @@ async def add_score(
                 f'Score calification for user {id_user} created'
                 + f'successfully on Training {training_id}'
             )
-            return await ScoreResponse.from_mongo(score_json)
+            return ScoreResponse.from_mongo(score_json)
         else:
             request.app.logger.info(
                 f'Score calification for user {id_user} could not be'
                 + f'created on Training {training_id}'
             )
             return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=status.HTTP_409_CONFLICT,
                 content=f'Score calification for user {id_user} '
                 + f'could not be created on Training {training_id}',
             )
@@ -108,14 +108,14 @@ async def modify_score(
                 f'Score calification for {id_user} updated'
                 + f' successfully on Training {training_id}'
             )
-            return await ScoreResponse.from_mongo(request_body)
+            return ScoreResponse.from_mongo(request_body)
         else:
             logger.info(
                 f'Score calification for {id_user} could not'
                 + f' be updated on Training {training_id}'
             )
             return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=status.HTTP_409_CONFLICT,
                 content=f'Score calification for {id_user} could not'
                 + f' be updated on Training {training_id}',
             )
