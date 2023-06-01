@@ -43,7 +43,7 @@ def mongo_mock(monkeypatch):
     app.database = db
     app.logger = logger
     monkeypatch.setattr(app, "database", db)
-    monkeypatch.setattr("app.trainings.user_small.ServiceUsers.get", mock_get)
+    monkeypatch.setattr("app.trainings.models.ServiceUsers.get", mock_get)
 
 
 def test_post_comment_success(mongo_mock):

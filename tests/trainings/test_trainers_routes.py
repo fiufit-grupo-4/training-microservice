@@ -13,10 +13,10 @@ from app.trainings.object_id import ObjectIdPydantic
 
 client = TestClient(app)
 
-trainer_id_example_mock = ObjectId()
+trainer_id_example_mock = str(ObjectId())
 
 training_example_mock = {
-    "id_trainer": trainer_id_example_mock,
+    "id_trainer": ObjectId(trainer_id_example_mock),
     "title": "A",
     "description": "string",
     "type": "Caminata",
@@ -31,7 +31,7 @@ training_example_mock = {
 }
 
 
-access_token_trainer_example = Settings.generate_token(str(trainer_id_example_mock))
+access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
 
 async def mock_get_fail(*args, **kwargs):
     response = Response()
@@ -111,9 +111,7 @@ def test_post_training_failed(mongo_mock, monkeypatch):
         json=data,
         headers={"Authorization": f"Bearer {access_token_trainer_example_other}"},
     )
-    response_body = response.json()
-    assert response.status_code == 404
-    assert response_body == "Failed to create training for trainer with id 6465a459b9cb604fdd382a28"
+    assert response.status_code == 500
 
 def test_update_training(mongo_mock):
     

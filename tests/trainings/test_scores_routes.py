@@ -43,7 +43,7 @@ def mongo_mock(monkeypatch):
     app.database = db
     app.logger = logger
     monkeypatch.setattr(app, "database", db)
-    monkeypatch.setattr("app.trainings.user_small.ServiceUsers.get", mock_get)
+    monkeypatch.setattr("app.trainings.models.ServiceUsers.get", mock_get)
 
 
 def test_post_scores(mongo_mock):
@@ -228,6 +228,7 @@ def test_delete_score_success(mongo_mock):
     assert response.json().get("qualification") == 5
 
     training = client.get("/trainings", json={"title": "A"}).json()[0]
+    logger.warning(training)
     assert training["scores"][0]["qualification"] == 5
 
     response = client.delete(

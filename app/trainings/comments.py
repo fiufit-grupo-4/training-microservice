@@ -40,7 +40,7 @@ async def add_qualification_comment(
         logger.info(
             f'Comment of user {id_user} created successfully on Training {training_id}'
         )
-        return await CommentResponse.from_mongo(comment_json)
+        return CommentResponse.from_mongo(comment_json)
     else:
         logger.info(
             f'Comment of user {id_user} could not be created on Training {training_id}'
@@ -77,7 +77,7 @@ async def modify_comment(
         logger.info(
             f'Comment of user {id_user} modified successfully on Training {training_id}'
         )
-        return await CommentResponse.from_mongo(
+        return CommentResponse.from_mongo(
             request_body.encode_json_with(id_user, comment_id)
         )
     else:
