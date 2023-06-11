@@ -1,6 +1,6 @@
 import asyncio
 import pymongo
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 import logging
 from logging.config import dictConfig
 from .log_config import logconfig
