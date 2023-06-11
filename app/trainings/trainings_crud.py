@@ -35,13 +35,14 @@ def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
     "/",
     response_model=TrainingResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create training by me",
+    summary="Create training",
 )
 async def add_training(
     request: Request,
     request_body: TrainingRequestPost,
     id_trainer: ObjectId = Depends(get_user_id),
 ):
+    request.state.metrics_allowed = True
     trainings = request.app.database["trainings"]
 
     training_json = request_body.encode_json_with(id_trainer)
