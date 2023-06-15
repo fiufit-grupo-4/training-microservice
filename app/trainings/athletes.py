@@ -32,6 +32,7 @@ def restrict_access_goals_service(request: Request):
 
 
 async def create_goal_started(training_id, goal, headers):
+    logger.info("TODO! create goal started")
     result_goals = await ServiceGoals.post(
         "/goals/",
         json={
@@ -43,7 +44,7 @@ async def create_goal_started(training_id, goal, headers):
         },
         headers={"authorization": headers["authorization"]},
     )
-
+    logger.warning(f"Result goals: {result_goals.json()}")
     return {"status_code": result_goals.status_code, "body": result_goals.json()}
 
 
@@ -98,7 +99,11 @@ async def start_training(
         {"user_id": ObjectId(id_user), "training_id": training_id}
     )
     if result_find:
-        state_saved = StateTraining(str(result_find["state"]))
+        state_saved = (
+            result_find['state']
+            if isinstance(result_find['state'], str)
+            else StateTraining(str(result_find['state']))
+        )
         if state_saved == StateTraining.INIT or state_saved == StateTraining.COMPLETE:
             logger.info(
                 f"Training {training_id} as {state_saved} state for athlete {id_user}"
@@ -195,7 +200,7 @@ async def start_training(
                 + f" Detail error: {e}"
             )
             return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=f"Goals of Training {training_id} could not"
                 + " be created in Goals Service",
             )
