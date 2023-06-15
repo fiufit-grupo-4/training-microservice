@@ -13,7 +13,7 @@ from app.trainings.models import (
 from app.trainings.object_id import ObjectIdPydantic
 from starlette.responses import JSONResponse
 
-from app.trainings.trainings_crud import get_user_id, get_user_role
+from app.trainings.trainings_crud import get_all_data_of_access_token
 
 
 logger = logging.getLogger('app')
@@ -21,20 +21,20 @@ router_trainings = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-async def update_states_to_visualizate(training, athletes_states):
-    id_user = get_user_id()
-    role_user = get_user_role()
+def update_states_to_visualizate(training, athletes_states, request: Request):
+    token = request.headers["authorization"].split(" ")[1]
+    data = get_all_data_of_access_token(token)
 
-    if role_user != UserRoles.ATLETA:
-        training["state_for_me"] = StateTraining.NOT_AS_TRAINER
+    if UserRoles(data["role"]) != UserRoles.ATLETA:
+        training["state"] = StateTraining.YOU_ARE_NOT_ATHLETE
     else:
         result = athletes_states.find_one(
-            {"user_id": ObjectId(id_user), "training_id": training["_id"]}
+            {"user_id": ObjectId(data["id"]), "training_id": training["_id"]}
         )
         if not result:
-            training["state_for_me"] = StateTraining.NOT_INIT
+            training["state"] = StateTraining.NOT_INIT
         else:
-            training["state_for_me"] = result["state"]
+            training["state"] = result["state"]
 
 
 @router_trainings.get(
@@ -56,7 +56,7 @@ async def get_trainings(
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
         if map_states:
             update_states_to_visualizate(
-                training, request.app.database["athletes_states"]
+                training, request.app.database["athletes_states"], request
             )
         if res := TrainingResponse.from_mongo(training):
             trainings_list.append(res)
@@ -175,7 +175,9 @@ async def get_training_by_id(
         )
 
     if map_states:
-        update_states_to_visualizate(training, request.app.database["athletes_states"])
+        update_states_to_visualizate(
+            training, request.app.database["athletes_states"], request
+        )
     if res := TrainingResponse.from_mongo(training):
         if map_users:
             await res.map_users([res])

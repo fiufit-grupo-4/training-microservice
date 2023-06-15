@@ -12,10 +12,17 @@ import app.main as main
 ########################################################################
 
 
-class UserRoles(Enum):
+class UserRoles(int, Enum):
     ADMIN = 1
     TRAINER = 2
     ATLETA = 3
+
+
+class StateGoal(int, Enum):
+    NOT_INIT = 1
+    INIT = 2
+    COMPLETE = 3
+    STOP = 4
 
 
 class StateTraining(str, Enum):
@@ -23,7 +30,7 @@ class StateTraining(str, Enum):
     INIT = "INIT"
     STOP = "STOP"
     COMPLETE = "COMPLETE"
-    NOT_AS_TRAINER = "NOT_AS_TRAINER"
+    YOU_ARE_NOT_ATHLETE = "YOU_ARE_NOT_ATHLETE"
 
 
 class GoalOfTraining(BaseModel):
@@ -147,7 +154,7 @@ class TrainingRequestPost(BaseModel):
             difficulty=self.difficulty,
             media=self.media or [],
             goals=self.goals or [],
-            state_for_me=StateTraining.NOT_INIT,
+            state=StateTraining.NOT_INIT,
         ).dict()
 
         # the "TrainingDatabase" model has an "id" field that
@@ -183,7 +190,7 @@ class TrainingResponse(BaseModel):
     comments: list[Union[CommentResponse, dict]] = []
     scores: list[Union[ScoreResponse, dict]] = []
     blocked: bool = False
-    state_for_me: StateTraining = StateTraining.NOT_AS_TRAINER
+    state: StateTraining = StateTraining.YOU_ARE_NOT_ATHLETE
 
     class Config(BaseConfig):
         json_encoders = {ObjectId: lambda id: str(id)}  # convert ObjectId into str

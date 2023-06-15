@@ -95,7 +95,7 @@ def test_post_training(mongo_mock):
             "name": "Juan",
             "lastname": "Perez"
         },
-        "state_for_me" : "NOT_AS_TRAINER",
+        "state" : "YOU_ARE_NOT_ATHLETE",
         "goals" : []
     }
 
