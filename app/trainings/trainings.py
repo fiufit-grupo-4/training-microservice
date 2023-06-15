@@ -21,6 +21,22 @@ router_trainings = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+async def update_states_to_visualizate(training, athletes_states):
+    id_user = get_user_id()
+    role_user = get_user_role()
+
+    if role_user != UserRoles.ATLETA:
+        training["state_for_me"] = StateTraining.NOT_AS_TRAINER
+    else:
+        result = athletes_states.find_one(
+            {"user_id": ObjectId(id_user), "training_id": training["_id"]}
+        )
+        if not result:
+            training["state_for_me"] = StateTraining.NOT_INIT
+        else:
+            training["state_for_me"] = result["state"]
+
+
 @router_trainings.get(
     '/',
     response_model=List[TrainingResponse],
@@ -32,22 +48,16 @@ async def get_trainings(
     queries: TrainingQueryParamsFilter = Depends(),
     limit: int = Query(128, ge=1, le=1024),
     map_users: Optional[bool] = True,
-    id_user: ObjectId = Depends(get_user_id),
-    role_user = Depends(get_user_role)
+    map_states: Optional[bool] = True,
 ):
     trainings = request.app.database["trainings"]
 
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
-        if role_user != UserRoles.ATLETA:
-            training["state_for_me"] = StateTraining.NOT_AS_TRAINER
-        else:
-            athletes_states = request.app.database["athletes_states"]
-            result = athletes_states.find_one({"user_id": ObjectId(id_user), "training_id": training["_id"]})
-            if not result:
-                training["state_for_me"] = StateTraining.NOT_INIT
-            else:
-                training["state_for_me"] = result["state"]
+        if map_states:
+            update_states_to_visualizate(
+                training, request.app.database["athletes_states"]
+            )
         if res := TrainingResponse.from_mongo(training):
             trainings_list.append(res)
 
@@ -149,11 +159,10 @@ def unblock_status(training_id: ObjectIdPydantic, request: Request):
     summary="Get a specific training by training_id",
 )
 async def get_training_by_id(
-    request: Request, 
-    training_id: ObjectIdPydantic, 
+    request: Request,
+    training_id: ObjectIdPydantic,
     map_users: Optional[bool] = True,
-    id_user: ObjectId = Depends(get_user_id),
-    get_user_role = Depends(get_user_role)
+    map_states: Optional[bool] = True,
 ):
     trainings = request.app.database["trainings"]
 
@@ -164,17 +173,9 @@ async def get_training_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             content=f'Training {training_id} not found to get',
         )
-        
-    if get_user_role != UserRoles.ATLETA:
-        training["state_for_me"] = StateTraining.NOT_AS_TRAINER
-    else:
-        athletes_states = request.app.database["athletes_states"]
-        result = athletes_states.find_one({"user_id": ObjectId(id_user), "training_id": training["_id"]})
-        if not result:
-            training["state_for_me"] = StateTraining.NOT_INIT
-        else:
-            training["state_for_me"] = result["state"]
 
+    if map_states:
+        update_states_to_visualizate(training, request.app.database["athletes_states"])
     if res := TrainingResponse.from_mongo(training):
         if map_users:
             await res.map_users([res])

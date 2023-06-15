@@ -1,14 +1,9 @@
 import logging
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from passlib.context import CryptContext
+from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette import status
-from typing import List, Optional
-from app.services import ServiceGoals, ServiceUsers
 from app.trainings.models import (
     StateTraining,
-    TrainingQueryParamsFilter,
-    TrainingResponse,
     UserRoles,
 )
 from app.trainings.object_id import ObjectIdPydantic
@@ -22,11 +17,11 @@ router_athletes = APIRouter()
 
 
 @router_athletes.patch('/{training_id}/start', status_code=status.HTTP_200_OK)
-async def stop_training(
+async def start_training(
     request: Request,
     training_id: ObjectIdPydantic,
     id_user: ObjectId = Depends(get_user_id),
-    role_user = Depends(get_user_role)
+    role_user=Depends(get_user_role),
 ):
     if role_user != UserRoles.ATLETA:
         raise HTTPException(
@@ -36,43 +31,67 @@ async def stop_training(
     trainings = request.app.database["trainings"]
     athletes_states = request.app.database["athletes_states"]
     training = trainings.find_one({"_id": training_id})
-    
+
     if not training:
         logger.info(f"Training {training_id} does not exist")
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content=f"Training {training_id} does not exist"
+            content=f"Training {training_id} does not exist",
         )
-            
-    result_find = athletes_states.find_one({"user_id": ObjectId(id_user), "training_id": training_id})
+
+    result_find = athletes_states.find_one(
+        {"user_id": ObjectId(id_user), "training_id": training_id}
+    )
     if result_find:
         state_saved = StateTraining(str(result_find["state"]))
         if state_saved == StateTraining.INIT or state_saved == StateTraining.COMPLETE:
-            logger.info(f"Training {training_id} as {state_saved} state for athlete {id_user}")
+            logger.info(
+                f"Training {training_id} as {state_saved} state for athlete {id_user}"
+            )
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=f"Training {training_id} as {state_saved} state for athlete {id_user}",
+                content=f"Training {training_id} as {state_saved}"
+                + f"state for athlete {id_user}",
             )
         else:
-            result_update = athletes_states.update_one({"user_id": ObjectId(id_user), "training_id": training_id}, {"$set": {"state": StateTraining.INIT}})
+            result_update = athletes_states.update_one(
+                {"user_id": ObjectId(id_user), "training_id": training_id},
+                {"$set": {"state": StateTraining.INIT}},
+            )
             if result_update.matched_count == 1:
-                logger.info(f"Training {training_id} as INIT for athlete {id_user} successfully")
+                logger.info(
+                    f"Training {training_id} as INIT for"
+                    + f"athlete {id_user} successfully"
+                )
                 return JSONResponse(
                     status_code=status.HTTP_200_OK,
-                    content=f"Training {training_id} as INIT for athlete {id_user} successfully",
+                    content=f"Training {training_id} as INIT"
+                    + f"for athlete {id_user} successfully",
                 )
             else:
-                logger.info(f"Training {training_id} could not be STOPPED for athlete {id_user}")
+                logger.info(
+                    f"Training {training_id} could not be STOPPED for athlete {id_user}"
+                )
                 return JSONResponse(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    content=f"Training {training_id} could not be STOPPED for athlete {id_user}",
+                    content=f"Training {training_id} could not"
+                    + f"be STOPPED for athlete {id_user}",
                 )
     else:
-        athletes_states.insert_one({"user_id": ObjectId(id_user), "training_id": training_id, "state": StateTraining.INIT})
-        logger.info(f"Training {training_id} as INIT for athlete {id_user} successfully")
+        athletes_states.insert_one(
+            {
+                "user_id": ObjectId(id_user),
+                "training_id": training_id,
+                "state": StateTraining.INIT,
+            }
+        )
+        logger.info(
+            f"Training {training_id} as INIT for athlete {id_user} successfully"
+        )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=f"Training {training_id} as INIT for athlete {id_user} successfully",
+            content=f"Training {training_id} as INIT for"
+            + f"athlete {id_user} successfully",
         )
 
 
@@ -81,7 +100,7 @@ async def stop_training(
     request: Request,
     training_id: ObjectIdPydantic,
     id_user: ObjectId = Depends(get_user_id),
-    role_user = Depends(get_user_role)
+    role_user=Depends(get_user_role),
 ):
     if role_user != UserRoles.ATLETA:
         raise HTTPException(
@@ -95,46 +114,65 @@ async def stop_training(
         logger.info(f"Training {training_id} does not exist")
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content=f"Training {training_id} does not exist"
+            content=f"Training {training_id} does not exist",
         )
 
-    result_find = athletes_states.find_one({"user_id": ObjectId(id_user), "training_id": training_id})
+    result_find = athletes_states.find_one(
+        {"user_id": ObjectId(id_user), "training_id": training_id}
+    )
     if not result_find:
         logger.info(f"Training {training_id} does not exist for athlete {id_user}")
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content=f"Training {training_id} does not exist for athlete {id_user}",
         )
-        
+
     state_saved = StateTraining(str(result_find["state"]))
-    if state_saved == StateTraining.NOT_INIT or state_saved == StateTraining.STOP or state_saved == StateTraining.COMPLETE:
-        logger.info(f"Training {training_id} as {state_saved} state for athlete {id_user}")
+    if (
+        state_saved == StateTraining.NOT_INIT
+        or state_saved == StateTraining.STOP
+        or state_saved == StateTraining.COMPLETE
+    ):
+        logger.info(
+            f"Training {training_id} as {state_saved} state for athlete {id_user}"
+        )
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content=f"Training {training_id} as {state_saved} state for athlete {id_user}",
+            content=f"Training {training_id} as {state_saved}"
+            + f"state for athlete {id_user}",
         )
-        
-    result_update = athletes_states.update_one({"user_id": ObjectId(id_user), "training_id": training_id}, {"$set": {"state": StateTraining.STOP}})
+
+    result_update = athletes_states.update_one(
+        {"user_id": ObjectId(id_user), "training_id": training_id},
+        {"$set": {"state": StateTraining.STOP}},
+    )
     if result_update.matched_count == 1:
-        logger.info(f"Training {training_id} as STOP state for athlete {id_user} successfully")
+        logger.info(
+            f"Training {training_id} as STOP state for"
+            + f"athlete {id_user} successfully"
+        )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=f"Training {training_id} as STOP state for athlete {id_user} successfully",
+            content=f"Training {training_id} as STOP"
+            + f"state for athlete {id_user} successfully",
         )
     else:
-        logger.info(f"Training {training_id} could not be STOPPED for athlete {id_user}")
+        logger.info(
+            f"Training {training_id} could not be STOPPED for athlete {id_user}"
+        )
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content=f"Training {training_id} could not be STOPPED for athlete {id_user}",
+            content=f"Training {training_id} could not"
+            + f"be STOPPED for athlete {id_user}",
         )
-    
+
 
 @router_athletes.patch('/{training_id}/complete', status_code=status.HTTP_200_OK)
 async def complete_training(
     request: Request,
     training_id: ObjectIdPydantic,
     id_user: ObjectId = Depends(get_user_id),
-    role_user = Depends(get_user_role)
+    role_user=Depends(get_user_role),
 ):
     if role_user != UserRoles.ATLETA:
         raise HTTPException(
@@ -148,35 +186,54 @@ async def complete_training(
         logger.info(f"Training {training_id} does not exist")
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content=f"Training {training_id} does not exist"
+            content=f"Training {training_id} does not exist",
         )
 
-    result_find = athletes_states.find_one({"user_id": ObjectId(id_user), "training_id": training_id})
+    result_find = athletes_states.find_one(
+        {"user_id": ObjectId(id_user), "training_id": training_id}
+    )
     if not result_find:
         logger.info(f"Training {training_id} does not exist for athlete {id_user}")
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content=f"Training {training_id} does not exist for athlete {id_user}",
         )
-        
+
     state_saved = StateTraining(str(result_find["state"]))
-    if state_saved == StateTraining.NOT_INIT or state_saved == StateTraining.STOP or state_saved == StateTraining.COMPLETE:
-        logger.info(f"Training {training_id} as {state_saved} state for athlete {id_user}")
+    if (
+        state_saved == StateTraining.NOT_INIT
+        or state_saved == StateTraining.STOP
+        or state_saved == StateTraining.COMPLETE
+    ):
+        logger.info(
+            f"Training {training_id} as {state_saved}" + f"state for athlete {id_user}"
+        )
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content=f"Training {training_id} as {state_saved} state for athlete {id_user}",
+            content=f"Training {training_id} as {state_saved}"
+            + f"state for athlete {id_user}",
         )
-        
-    result_update = athletes_states.update_one({"user_id": ObjectId(id_user), "training_id": training_id}, {"$set": {"state": StateTraining.COMPLETE}})
+
+    result_update = athletes_states.update_one(
+        {"user_id": ObjectId(id_user), "training_id": training_id},
+        {"$set": {"state": StateTraining.COMPLETE}},
+    )
     if result_update.matched_count == 1:
-        logger.info(f"Training {training_id} as COMPLETE state for athlete {id_user} successfully")
+        logger.info(
+            f"Training {training_id} as COMPLETE state"
+            + f"for athlete {id_user} successfully"
+        )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=f"Training {training_id} as COMPLETE state for athlete {id_user} successfully",
+            content=f"Training {training_id} as COMPLETE"
+            + f"state for athlete {id_user} successfully",
         )
     else:
-        logger.info(f"Training {training_id} could not be COMPLETED for athlete {id_user}")
+        logger.info(
+            f"Training {training_id} could not be COMPLETED" + f"for athlete {id_user}"
+        )
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content=f"Training {training_id} could not be COMPLETED for athlete {id_user}",
+            content=f"Training {training_id} could not be"
+            + f"COMPLETED for athlete {id_user}",
         )

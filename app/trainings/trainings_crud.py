@@ -31,6 +31,7 @@ def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
             status_code=status.HTTP_400_BAD_REQUEST, detail="Token invalid!"
         )
 
+
 def get_user_role(token: str = Depends(JWTBearer())) -> UserRoles:
     """Get user user role from the token"""
 

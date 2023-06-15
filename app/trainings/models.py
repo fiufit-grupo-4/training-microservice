@@ -8,14 +8,15 @@ from app.services import ServiceUsers
 from app.trainings.object_id import ObjectIdPydantic
 from app.trainings.user_small import UserResponseSmall
 import app.main as main
-from datetime import datetime
 
 ########################################################################
+
 
 class UserRoles(Enum):
     ADMIN = 1
     TRAINER = 2
     ATLETA = 3
+
 
 class StateTraining(str, Enum):
     NOT_INIT = "NOT_INIT"
