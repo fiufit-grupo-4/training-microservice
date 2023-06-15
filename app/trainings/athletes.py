@@ -13,7 +13,6 @@ from app.trainings.object_id import ObjectIdPydantic
 from starlette.responses import JSONResponse
 
 from app.trainings.trainings_crud import get_all_data_of_access_token
-import time
 
 logger = logging.getLogger('app')
 router_athletes = APIRouter()
@@ -40,7 +39,6 @@ async def create_goal_started(training_id, goal, headers):
             "description": goal["description"],
             "metric": goal["metric"],
             "quantity": goal["quantity"],
-            "state": StateGoal.INIT,
             "training_id": str(training_id),
         },
         headers={"authorization": headers["authorization"]},

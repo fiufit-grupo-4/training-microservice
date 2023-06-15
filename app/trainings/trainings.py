@@ -1,6 +1,6 @@
 import logging
 from bson import ObjectId
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from passlib.context import CryptContext
 from starlette import status
 from typing import List, Optional
@@ -22,7 +22,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def update_states_to_visualizate(training, athletes_states, request: Request):
-    token = request.headers["authorization"].split(" ")[1]
+    try:
+        token = request.headers["authorization"].split(" ")[1]
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalid!"
+        )
     data = get_all_data_of_access_token(token)
 
     if UserRoles(data["role"]) != UserRoles.ATLETA:
