@@ -8,8 +8,28 @@ from app.services import ServiceUsers
 from app.trainings.object_id import ObjectIdPydantic
 from app.trainings.user_small import UserResponseSmall
 import app.main as main
+from datetime import datetime
 
 ########################################################################
+
+class UserRoles(Enum):
+    ADMIN = 1
+    TRAINER = 2
+    ATLETA = 3
+
+class StateTraining(str, Enum):
+    NOT_INIT = "NOT_INIT"
+    INIT = "INIT"
+    STOP = "STOP"
+    COMPLETE = "COMPLETE"
+    NOT_AS_TRAINER = "NOT_AS_TRAINER"
+
+
+class GoalOfTraining(BaseModel):
+    title: str
+    description: str
+    metric: str
+    quantity: int = 0
 
 
 class TrainingTypes(str, Enum):
@@ -112,6 +132,7 @@ class TrainingRequestPost(BaseModel):
     description: str
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
+    goals: Optional[list[GoalOfTraining]]
     media: Optional[list[Media]]
 
     def encode_json_with(self, id_trainer: ObjectIdPydantic):
@@ -124,6 +145,8 @@ class TrainingRequestPost(BaseModel):
             type=self.type,
             difficulty=self.difficulty,
             media=self.media or [],
+            goals=self.goals or [],
+            state_for_me=StateTraining.NOT_INIT,
         ).dict()
 
         # the "TrainingDatabase" model has an "id" field that
@@ -141,6 +164,7 @@ class TrainingDatabase(BaseModel):
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
     media: list[Media] = []
+    goals: list[GoalOfTraining] = []
     comments: list[Comment] = []
     scores: list[Score] = []
     blocked: bool = False
@@ -154,9 +178,11 @@ class TrainingResponse(BaseModel):
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
     media: list[Media] = []
+    goals: list[GoalOfTraining] = []
     comments: list[Union[CommentResponse, dict]] = []
     scores: list[Union[ScoreResponse, dict]] = []
     blocked: bool = False
+    state_for_me: StateTraining = StateTraining.NOT_AS_TRAINER
 
     class Config(BaseConfig):
         json_encoders = {ObjectId: lambda id: str(id)}  # convert ObjectId into str

@@ -1,14 +1,19 @@
 import logging
+from bson import ObjectId
 from fastapi import APIRouter, Depends, Query, Request
 from passlib.context import CryptContext
 from starlette import status
 from typing import List, Optional
 from app.trainings.models import (
+    StateTraining,
     TrainingQueryParamsFilter,
     TrainingResponse,
+    UserRoles,
 )
 from app.trainings.object_id import ObjectIdPydantic
 from starlette.responses import JSONResponse
+
+from app.trainings.trainings_crud import get_user_id, get_user_role
 
 
 logger = logging.getLogger('app')
@@ -27,11 +32,22 @@ async def get_trainings(
     queries: TrainingQueryParamsFilter = Depends(),
     limit: int = Query(128, ge=1, le=1024),
     map_users: Optional[bool] = True,
+    id_user: ObjectId = Depends(get_user_id),
+    role_user = Depends(get_user_role)
 ):
     trainings = request.app.database["trainings"]
 
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
+        if role_user != UserRoles.ATLETA:
+            training["state_for_me"] = StateTraining.NOT_AS_TRAINER
+        else:
+            athletes_states = request.app.database["athletes_states"]
+            result = athletes_states.find_one({"user_id": ObjectId(id_user), "training_id": training["_id"]})
+            if not result:
+                training["state_for_me"] = StateTraining.NOT_INIT
+            else:
+                training["state_for_me"] = result["state"]
         if res := TrainingResponse.from_mongo(training):
             trainings_list.append(res)
 
@@ -133,7 +149,11 @@ def unblock_status(training_id: ObjectIdPydantic, request: Request):
     summary="Get a specific training by training_id",
 )
 async def get_training_by_id(
-    request: Request, training_id: ObjectIdPydantic, map_users: Optional[bool] = True
+    request: Request, 
+    training_id: ObjectIdPydantic, 
+    map_users: Optional[bool] = True,
+    id_user: ObjectId = Depends(get_user_id),
+    get_user_role = Depends(get_user_role)
 ):
     trainings = request.app.database["trainings"]
 
@@ -144,6 +164,16 @@ async def get_training_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             content=f'Training {training_id} not found to get',
         )
+        
+    if get_user_role != UserRoles.ATLETA:
+        training["state_for_me"] = StateTraining.NOT_AS_TRAINER
+    else:
+        athletes_states = request.app.database["athletes_states"]
+        result = athletes_states.find_one({"user_id": ObjectId(id_user), "training_id": training["_id"]})
+        if not result:
+            training["state_for_me"] = StateTraining.NOT_INIT
+        else:
+            training["state_for_me"] = result["state"]
 
     if res := TrainingResponse.from_mongo(training):
         if map_users:

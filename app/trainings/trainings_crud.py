@@ -9,6 +9,7 @@ from app.trainings.models import (
     TrainingRequestPost,
     TrainingResponse,
     UpdateTrainingRequest,
+    UserRoles,
 )
 
 from fastapi import Depends, HTTPException, status
@@ -25,6 +26,17 @@ def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
     try:
         token_data_trainer = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         return ObjectId(token_data_trainer["id"])
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token invalid!"
+        )
+
+def get_user_role(token: str = Depends(JWTBearer())) -> UserRoles:
+    """Get user user role from the token"""
+
+    try:
+        token_data_trainer = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return UserRoles(int(token_data_trainer["role"]))
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Token invalid!"
