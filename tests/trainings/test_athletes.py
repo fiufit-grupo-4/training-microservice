@@ -249,3 +249,153 @@ def test_start_training_stopped_as_athlete_then_start_again(mongo_mock):
 
     response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
     assert response.json()[0]["state"] == StateTraining.INIT.value
+    
+
+def test_start_training_inexistent_as_athlete_return_error(mongo_mock):
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.patch(f"/athletes/me/trainings/60b9b0a9d6b9a9b3f0a1a1a1/start", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_stop_training_inexistent_as_athlete_return_error(mongo_mock):
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.patch(f"/athletes/me/trainings/60b9b0a9d6b9a9b3f0a1a1a1/stop", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_stop_training_without_role_athlete_return_error(mongo_mock):
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    id_training = response.json()[0]["id"]
+    
+    response = client.patch(f"/athletes/me/trainings/{id_training}/stop", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json()["detail"] == "You are not an ATHLETE to start a training"
+    
+def test_stop_training_not_init_with_role_athlete_return_error(mongo_mock):
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    id_training = response.json()[0]["id"]
+    
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.patch(f"/athletes/me/trainings/{id_training}/stop", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    
+    
+def test_stop_training_not_init_or_complete_or_stop_return_error(mongo_mock):
+    athletes_states = app.database.get_collection("athletes_states")
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    id_training = response.json()[0]["id"]
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.json()[0]["state"] == StateTraining.NOT_INIT.value
+    
+    athletes_states.insert_one({"user_id": user_id,
+                            "training_id": ObjectId(id_training), 
+                            "state": StateTraining.NOT_INIT.value,
+                            "goals": [ObjectId("60b9b0a9d6b9a9b3f0a1a1a3"), 
+                                        ObjectId("60b9b0a9d6b9a9b3f0a1a1a4")]})
+    
+    response = client.patch(f"/athletes/me/trainings/{id_training}/stop", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    
+    athletes_states.update_one({"user_id": user_id}, {"$set": {"state": StateTraining.NOT_INIT.value}})
+    response = client.patch(f"/athletes/me/trainings/{id_training}/stop", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    athletes_states.update_one({"user_id": user_id}, {"$set": {"state": StateTraining.STOP.value}})
+    response = client.patch(f"/athletes/me/trainings/{id_training}/stop", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    athletes_states.update_one({"user_id": user_id}, {"$set": {"state": StateTraining.COMPLETE.value}})
+    response = client.patch(f"/athletes/me/trainings/{id_training}/stop", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    
+
+def test_stop_training_init_with_role_athlete_return_training_stopped_for_this_athlete(mongo_mock):
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    id_training = response.json()[0]["id"]
+
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.patch(f"/athletes/me/trainings/{id_training}/start", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_200_OK
+    
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.json()[0]["state"] == StateTraining.INIT.value
+    
+    response = client.patch(f"/athletes/me/trainings/{id_training}/stop", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_200_OK
+    
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.json()[0]["state"] == StateTraining.STOP.value
+
+def test_complete_training_inexistent_as_athlete_return_error(mongo_mock):
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.patch(f"/athletes/me/trainings/60b9b0a9d6b9a9b3f0a1a1a1/complete", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_complete_training_inexistent_as_athlete_return_error(mongo_mock):
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.patch(f"/athletes/me/trainings/60b9b0a9d6b9a9b3f0a1a1a1/complete", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_complete_training_without_role_athlete_return_error(mongo_mock):
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    id_training = response.json()[0]["id"]
+    
+    response = client.patch(f"/athletes/me/trainings/{id_training}/complete", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json()["detail"] == "You are not an ATHLETE to start a training"
+
+
+def test_complete_training_not_init_or_complete_or_stop_return_error(mongo_mock):
+    athletes_states = app.database.get_collection("athletes_states")
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    id_training = response.json()[0]["id"]
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.json()[0]["state"] == StateTraining.NOT_INIT.value
+    
+    athletes_states.insert_one({"user_id": user_id,
+                            "training_id": ObjectId(id_training), 
+                            "state": StateTraining.NOT_INIT.value,
+                            "goals": [ObjectId("60b9b0a9d6b9a9b3f0a1a1a3"), 
+                                        ObjectId("60b9b0a9d6b9a9b3f0a1a1a4")]})
+    
+    response = client.patch(f"/athletes/me/trainings/{id_training}/complete", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    
+    athletes_states.update_one({"user_id": user_id}, {"$set": {"state": StateTraining.NOT_INIT.value}})
+    response = client.patch(f"/athletes/me/trainings/{id_training}/complete", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    athletes_states.update_one({"user_id": user_id}, {"$set": {"state": StateTraining.STOP.value}})
+    response = client.patch(f"/athletes/me/trainings/{id_training}/complete", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    athletes_states.update_one({"user_id": user_id}, {"$set": {"state": StateTraining.COMPLETE.value}})
+    response = client.patch(f"/athletes/me/trainings/{id_training}/complete", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    
+
+def test_complete_training_init_with_role_athlete_return_training_completed_for_this_athlete(mongo_mock):
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_trainer_example}"})
+    id_training = response.json()[0]["id"]
+
+    user_id = ObjectId("60b9b0a9d6b9a9b3f0a1a1a1")
+    access_token_athlete_example = Settings.generate_token_with_role(str(user_id), UserRoles.ATLETA)
+    response = client.patch(f"/athletes/me/trainings/{id_training}/start", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_200_OK
+    
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.json()[0]["state"] == StateTraining.INIT.value
+    
+    response = client.patch(f"/athletes/me/trainings/{id_training}/complete", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.status_code == status.HTTP_200_OK
+    
+    response = client.get("/trainings", headers={"Authorization": f"Bearer {access_token_athlete_example}"})
+    assert response.json()[0]["state"] == StateTraining.COMPLETE.value

@@ -25,22 +25,8 @@ class ServiceUsers:
 
 class ServiceGoals:
     @staticmethod
-    async def get(path):
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(f"{GOALS_SERVICE_URL}{path}")
-                return response
-        except Exception:
-            main.logger.error('Goals service cannot be accessed')
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail='Goals service cannot be accessed',
-            )
-
-    @staticmethod
     async def post(path, json, headers):
         try:
-            print(f"/................. {path} {json} {headers}")
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     f"{GOALS_SERVICE_URL}{path}",

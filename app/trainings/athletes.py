@@ -239,7 +239,11 @@ async def stop_training(
             content=f"Training {training_id} does not exist for athlete {id_user}",
         )
 
-    state_saved = StateTraining(str(result_find["state"]))
+    state_saved = (
+        result_find['state']
+        if isinstance(result_find['state'], str)
+        else StateTraining(str(result_find['state']))
+    )
     if (
         state_saved == StateTraining.NOT_INIT
         or state_saved == StateTraining.STOP
@@ -254,7 +258,6 @@ async def stop_training(
             + f" state for athlete {id_user}",
         )
 
-    old_state = result_find["state"]
     result_update = athletes_states.update_one(
         {"user_id": ObjectId(id_user), "training_id": training_id},
         {"$set": {"state": StateTraining.STOP}},
@@ -281,7 +284,7 @@ async def stop_training(
         else:
             athletes_states.update_one(
                 {"user_id": ObjectId(id_user), "training_id": training_id},
-                {"$set": {"state": old_state}},
+                {"$set": {"state": state_saved}},
             )
 
     logger.info(f"Training {training_id} could not be STOPPED for athlete {id_user}")
@@ -328,7 +331,11 @@ async def complete_training(
             content=f"Training {training_id} does not exist for athlete {id_user}",
         )
 
-    state_saved = StateTraining(str(result_find["state"]))
+    state_saved = (
+        result_find['state']
+        if isinstance(result_find['state'], str)
+        else StateTraining(str(result_find['state']))
+    )
     if (
         state_saved == StateTraining.NOT_INIT
         or state_saved == StateTraining.STOP
