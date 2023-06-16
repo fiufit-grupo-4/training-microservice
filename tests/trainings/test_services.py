@@ -30,18 +30,18 @@ training_example_mock = {
       "title": "A",
       "description": "A asd",
       "metric": "kcal",
-      "quantity": 100
+      "quantity_steps": 100
     },    {
       "title": "B",
       "description": "B ASD",
       "metric": "steps",
-      "quantity": 13
+      "quantity_steps": 13
     },
         {
       "title": "C",
       "description": "C ASD",
       "metric": "km",
-      "quantity": 32
+      "quantity_steps": 32
     }]
 }
 

@@ -29,18 +29,18 @@ training_example_mock = {
       "title": "A",
       "description": "A asd",
       "metric": "kcal",
-      "quantity": 100
+      "quantity_steps": 100
     },    {
       "title": "B",
       "description": "B ASD",
       "metric": "steps",
-      "quantity": 13
+      "quantity_steps": 13
     },
         {
       "title": "C",
       "description": "C ASD",
       "metric": "km",
-      "quantity": 32
+      "quantity_steps": 32
     }]
 }
 
@@ -65,7 +65,7 @@ async def mock_post_goals(*args, **kwargs):
         "limit_time": "2023-06-15T21:24:11.479000+00:00",
         "state": 1,
         "list_multimedia": [],
-        "quantity": 0,
+        "quantity_steps": 0,
         "progress": 0
         }
     return {"status_code": response.status_code, "body": response.json()}
