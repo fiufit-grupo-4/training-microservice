@@ -17,6 +17,26 @@ from app.trainings.trainings_crud import get_all_data_of_access_token
 logger = logging.getLogger('app')
 router_athletes = APIRouter()
 
+def is_athlete(request: Request):
+    data_access_token = get_all_data_of_access_token(request.headers.get("authorization").split(" ")[1])
+    if UserRoles(data_access_token["role"]) != UserRoles.ATLETA:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are not an ATHLETE to start a training",
+        )
+        
+
+def exist_training(training_id: ObjectIdPydantic, request: Request) -> ObjectIdPydantic:
+    trainings = request.app.database["trainings"]
+    training = trainings.find_one({"_id": training_id})
+    if not training:
+        logger.info(f"Training {training_id} does not exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Training {training_id} does not exist",
+        )
+    return training_id
+    
 
 def restrict_access_goals_service(request: Request):
     logger.info("TODO! restrict access to endpoint of goals service")
@@ -71,29 +91,17 @@ async def set_state(id_goal, headers, StateGoal):
     return {"status_code": result.status_code, "body": result.json()}
 
 
-@router_athletes.patch('/{training_id}/start', status_code=status.HTTP_200_OK)
+@router_athletes.patch('/{training_id}/start', status_code=status.HTTP_200_OK, dependencies=[Depends(is_athlete)])
 async def start_training(
     request: Request,
-    training_id: ObjectIdPydantic,
+    training_id: ObjectIdPydantic = Depends(exist_training),
     data_access_token=Depends(get_all_data_of_access_token),
+    
 ):
-
-    if UserRoles(data_access_token["role"]) != UserRoles.ATLETA:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You are not an ATHLETE to start a training",
-        )
     id_user = data_access_token["id"]
     trainings = request.app.database["trainings"]
     athletes_states = request.app.database["athletes_states"]
     training = trainings.find_one({"_id": training_id})
-
-    if not training:
-        logger.info(f"Training {training_id} does not exist")
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content=f"Training {training_id} does not exist",
-        )
 
     result_find = athletes_states.find_one(
         {"user_id": ObjectId(id_user), "training_id": training_id}
@@ -206,32 +214,18 @@ async def start_training(
             )
 
 
-@router_athletes.patch('/{training_id}/stop', status_code=status.HTTP_200_OK)
+@router_athletes.patch('/{training_id}/stop', status_code=status.HTTP_200_OK, dependencies=[Depends(is_athlete)])
 async def stop_training(
     request: Request,
-    training_id: ObjectIdPydantic,
+    training_id: ObjectIdPydantic = Depends(exist_training),
     data_access_token=Depends(get_all_data_of_access_token),
 ):
-    if UserRoles(data_access_token["role"]) != UserRoles.ATLETA:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You are not an ATHLETE to start a training",
-        )
     id_user = data_access_token["id"]
-
-    trainings = request.app.database["trainings"]
     athletes_states = request.app.database["athletes_states"]
-    training = trainings.find_one({"_id": training_id})
-    if not training:
-        logger.info(f"Training {training_id} does not exist")
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content=f"Training {training_id} does not exist",
-        )
-
     result_find = athletes_states.find_one(
         {"user_id": ObjectId(id_user), "training_id": training_id}
     )
+    
     if not result_find:
         logger.info(f"Training {training_id} does not exist for athlete {id_user}")
         return JSONResponse(
@@ -298,32 +292,19 @@ async def stop_training(
 @router_athletes.patch(
     '/{training_id}/complete',
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(restrict_access_goals_service)],
+    dependencies=[Depends(is_athlete)],
 )
 async def complete_training(
     request: Request,
-    training_id: ObjectIdPydantic,
-    data_access_token=Depends(get_all_data_of_access_token),
+    training_id: ObjectIdPydantic = Depends(exist_training),
+    data_access_token=Depends(get_all_data_of_access_token)
 ):
-    if UserRoles(data_access_token["role"]) != UserRoles.ATLETA:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You are not an ATHLETE to start a training",
-        )
     id_user = data_access_token["id"]
-    trainings = request.app.database["trainings"]
     athletes_states = request.app.database["athletes_states"]
-    training = trainings.find_one({"_id": training_id})
-    if not training:
-        logger.info(f"Training {training_id} does not exist")
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content=f"Training {training_id} does not exist",
-        )
-
     result_find = athletes_states.find_one(
         {"user_id": ObjectId(id_user), "training_id": training_id}
     )
+    
     if not result_find:
         logger.info(f"Training {training_id} does not exist for athlete {id_user}")
         return JSONResponse(
