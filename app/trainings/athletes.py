@@ -61,7 +61,7 @@ async def create_goal_started(training_id, goal, headers):
             "title": goal["title"],
             "description": goal["description"],
             "metric": goal["metric"],
-            "quantity": goal["quantity"],
+            "quantity_steps": goal["quantity_steps"],
             "training_id": str(training_id),
         },
         headers={"authorization": headers["authorization"]},

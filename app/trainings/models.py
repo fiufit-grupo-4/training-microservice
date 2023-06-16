@@ -37,7 +37,7 @@ class GoalOfTraining(BaseModel):
     title: str
     description: str
     metric: str
-    quantity: int = 0
+    quantity_steps: int = 0
 
 
 class TrainingTypes(str, Enum):
