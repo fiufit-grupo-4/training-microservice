@@ -61,7 +61,7 @@ def mongo_mock(monkeypatch):
 
 
 def test_get_trainings(mongo_mock):
-    response = client.get("/trainings")
+    response = client.get("/trainings?map_users=false&map_states=false")
     assert response.status_code == 200
 
     response_body = response.json()
@@ -138,6 +138,6 @@ def test_unblock_status(mongo_mock):
 
 def test_get_training_by_id_failed(mongo_mock,monkeypatch):
     monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_fail)
-    response = client.get(f"/trainings/{training_id_example_mock}")
+    response = client.get(f"/trainings/{training_id_example_mock}?map_states=false")
 
     assert response.status_code == 500

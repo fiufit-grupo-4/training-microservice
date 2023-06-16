@@ -1,19 +1,45 @@
 import logging
-from fastapi import APIRouter, Depends, Query, Request
+from bson import ObjectId
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from passlib.context import CryptContext
 from starlette import status
 from typing import List, Optional
 from app.trainings.models import (
+    StateTraining,
     TrainingQueryParamsFilter,
     TrainingResponse,
+    UserRoles,
 )
 from app.trainings.object_id import ObjectIdPydantic
 from starlette.responses import JSONResponse
+
+from app.trainings.trainings_crud import get_all_data_of_access_token
 
 
 logger = logging.getLogger('app')
 router_trainings = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def update_states_to_visualizate(training, athletes_states, request: Request):
+    try:
+        token = request.headers["authorization"].split(" ")[1]
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalid!"
+        )
+    data = get_all_data_of_access_token(token)
+
+    if UserRoles(data["role"]) != UserRoles.ATLETA:
+        training["state"] = StateTraining.YOU_ARE_NOT_ATHLETE
+    else:
+        result = athletes_states.find_one(
+            {"user_id": ObjectId(data["id"]), "training_id": training["_id"]}
+        )
+        if not result:
+            training["state"] = StateTraining.NOT_INIT
+        else:
+            training["state"] = result["state"]
 
 
 @router_trainings.get(
@@ -27,11 +53,16 @@ async def get_trainings(
     queries: TrainingQueryParamsFilter = Depends(),
     limit: int = Query(128, ge=1, le=1024),
     map_users: Optional[bool] = True,
+    map_states: Optional[bool] = True,
 ):
     trainings = request.app.database["trainings"]
 
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
+        if map_states:
+            update_states_to_visualizate(
+                training, request.app.database["athletes_states"], request
+            )
         if res := TrainingResponse.from_mongo(training):
             trainings_list.append(res)
 
@@ -133,7 +164,10 @@ def unblock_status(training_id: ObjectIdPydantic, request: Request):
     summary="Get a specific training by training_id",
 )
 async def get_training_by_id(
-    request: Request, training_id: ObjectIdPydantic, map_users: Optional[bool] = True
+    request: Request,
+    training_id: ObjectIdPydantic,
+    map_users: Optional[bool] = True,
+    map_states: Optional[bool] = True,
 ):
     trainings = request.app.database["trainings"]
 
@@ -145,6 +179,10 @@ async def get_training_by_id(
             content=f'Training {training_id} not found to get',
         )
 
+    if map_states:
+        update_states_to_visualizate(
+            training, request.app.database["athletes_states"], request
+        )
     if res := TrainingResponse.from_mongo(training):
         if map_users:
             await res.map_users([res])

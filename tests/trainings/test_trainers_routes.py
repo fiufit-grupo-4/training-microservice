@@ -94,7 +94,9 @@ def test_post_training(mongo_mock):
             "id": str(trainer_id_example_mock),
             "name": "Juan",
             "lastname": "Perez"
-        }
+        },
+        "state" : "YOU_ARE_NOT_ATHLETE",
+        "goals" : []
     }
 
 def test_post_training_failed(mongo_mock, monkeypatch):

@@ -12,6 +12,34 @@ import app.main as main
 ########################################################################
 
 
+class UserRoles(int, Enum):
+    ADMIN = 1
+    TRAINER = 2
+    ATLETA = 3
+
+
+class StateGoal(int, Enum):
+    NOT_INIT = 1
+    INIT = 2
+    COMPLETE = 3
+    STOP = 4
+
+
+class StateTraining(str, Enum):
+    NOT_INIT = "NOT_INIT"
+    INIT = "INIT"
+    STOP = "STOP"
+    COMPLETE = "COMPLETE"
+    YOU_ARE_NOT_ATHLETE = "YOU_ARE_NOT_ATHLETE"
+
+
+class GoalOfTraining(BaseModel):
+    title: str
+    description: str
+    metric: str
+    quantity: int = 0
+
+
 class TrainingTypes(str, Enum):
     caminata = "Caminata"
     running = "Running"
@@ -112,6 +140,7 @@ class TrainingRequestPost(BaseModel):
     description: str
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
+    goals: Optional[list[GoalOfTraining]]
     media: Optional[list[Media]]
 
     def encode_json_with(self, id_trainer: ObjectIdPydantic):
@@ -124,6 +153,8 @@ class TrainingRequestPost(BaseModel):
             type=self.type,
             difficulty=self.difficulty,
             media=self.media or [],
+            goals=self.goals or [],
+            state=StateTraining.NOT_INIT,
         ).dict()
 
         # the "TrainingDatabase" model has an "id" field that
@@ -141,6 +172,7 @@ class TrainingDatabase(BaseModel):
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
     media: list[Media] = []
+    goals: list[GoalOfTraining] = []
     comments: list[Comment] = []
     scores: list[Score] = []
     blocked: bool = False
@@ -154,9 +186,11 @@ class TrainingResponse(BaseModel):
     type: TrainingTypes
     difficulty: int = Field(None, ge=1, le=5)
     media: list[Media] = []
+    goals: list[GoalOfTraining] = []
     comments: list[Union[CommentResponse, dict]] = []
     scores: list[Union[ScoreResponse, dict]] = []
     blocked: bool = False
+    state: StateTraining = StateTraining.YOU_ARE_NOT_ATHLETE
 
     class Config(BaseConfig):
         json_encoders = {ObjectId: lambda id: str(id)}  # convert ObjectId into str

@@ -5,6 +5,7 @@ from logging.config import dictConfig
 from .log_config import logconfig
 from os import environ
 from dotenv import load_dotenv
+from app.trainings.athletes import router_athletes
 from app.trainings.trainings import router_trainings
 from app.trainings.trainings_crud import router_trainers
 from app.trainings.scores import router_scores
@@ -51,6 +52,13 @@ app.include_router(
     prefix="/trainers/me/trainings",
     tags=["CRUD for Trainers - Training microservice"],
 )
+
+app.include_router(
+    router_athletes,
+    prefix="/athletes/me/trainings",
+    tags=["Goals for Athletes - Training microservice"],
+)
+
 app.include_router(
     router_scores, prefix="/trainings", tags=["Scores - Training microservice"]
 )
