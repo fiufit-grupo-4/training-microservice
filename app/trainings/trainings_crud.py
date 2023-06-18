@@ -10,7 +10,7 @@ from app.trainings.models import (
     TrainingResponse,
     UpdateTrainingRequest,
 )
-from app.definitions import MEDIA_UPLOAD, NEW_TRAINING
+from app.definitions import DELETE_TRAINING, MEDIA_UPLOAD, NEW_TRAINING
 from fastapi import Depends, HTTPException, status
 from starlette.responses import JSONResponse
 
@@ -171,6 +171,10 @@ def delete_training(
     result = trainings.delete_one({"_id": training_id, "id_trainer": id_trainer})
     if result.deleted_count == 1:
         request.app.logger.info(f'Deleting training {training_id}')
+        request.state.metrics_allowed = True
+        request.state.user_id = str(id_trainer)
+        request.state.action = DELETE_TRAINING
+        request.state.training_id = str(training_id)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=f'Training {training_id} deleted successfully',
