@@ -10,7 +10,7 @@ from app.trainings.models import (
     TrainingResponse,
     UpdateTrainingRequest,
 )
-
+from app.definitions import MEDIA_UPLOAD, NEW_TRAINING
 from fastapi import Depends, HTTPException, status
 from starlette.responses import JSONResponse
 
@@ -42,7 +42,6 @@ async def add_training(
     request_body: TrainingRequestPost,
     id_trainer: ObjectId = Depends(get_user_id),
 ):
-    request.state.metrics_allowed = True
     trainings = request.app.database["trainings"]
 
     training_json = request_body.encode_json_with(id_trainer)
@@ -53,6 +52,11 @@ async def add_training(
     request.app.logger.info(f'New training {training_id} created.')
 
     if res := TrainingResponse.from_mongo(training_mongo):
+        request.state.metrics_allowed = True
+        request.state.user_id = str(id_trainer)
+        request.state.action = NEW_TRAINING
+        request.state.training_id = str(training_id)
+        request.state.training_type = str(res.type).split(".")[-1]
         await TrainingResponse.map_users([res])
         return res
     else:
@@ -135,6 +139,11 @@ async def update_training(
         {"_id": training_id}, {"$set": fields_to_change}
     )
     if update_result.modified_count > 0:
+        if fields_to_change.get('media'):
+            request.state.metrics_allowed = True
+            request.state.action = MEDIA_UPLOAD
+            request.state.user_id = str(id_trainer)
+            request.state.training_id = str(training_id)
         request.app.logger.info(
             f'Updating training {training_id} values {list(fields_to_change.keys())}'
         )

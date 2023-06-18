@@ -10,6 +10,7 @@ publisher = getPublisherQueue()
 
 class PublisherQueueEventMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        response = None
         start_timestamp = datetime.datetime.now().timestamp()
         try:
             response = await call_next(request)
