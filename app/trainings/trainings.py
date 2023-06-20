@@ -198,9 +198,8 @@ async def get_training_by_id(
 
 @router_trainings.get(
     "/{training_id}/statistics",
-    response_model=TrainingResponse,
     status_code=status.HTTP_200_OK,
-    summary="Get a specific training by training_id",
+    summary="Get a specific training statistics by training_id",
 )
 async def get_statistics_training_by_id(
     request: Request, training_id: ObjectIdPydantic
