@@ -41,7 +41,13 @@ async def mock_get_fail(*args, **kwargs):
 async def mock_get(*args, **kwargs):
     response = Response()
     response.status_code = 200
-    response.json = lambda: {"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez"}
+    response.json = lambda: {"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez", "trainings": []}
+    return response
+
+async def mock_get_all_users(*args, **kwargs):
+    response = Response()
+    response.status_code = 200
+    response.json = lambda: [{"id" : trainer_id_example_mock, "name": "Juan", "lastname": "Perez", "trainings": []}]
     return response
 
 @pytest.fixture()
@@ -141,3 +147,37 @@ def test_get_training_by_id_failed(mongo_mock,monkeypatch):
     response = client.get(f"/trainings/{training_id_example_mock}?map_states=false")
 
     assert response.status_code == 500
+    
+def test_get_statistics_by_id_training(mongo_mock, monkeypatch):
+    monkeypatch.setattr("app.trainings.trainings.ServiceUsers.get", mock_get_all_users)
+
+    response = client.get(f"/trainings/{training_id_example_mock}/statistics")
+    assert response.status_code == 200
+
+    response_body = response.json()
+    assert response_body == dict({
+        'count_favorites': 0,
+        'count_scores': 0,
+        'count_comments': 0
+    })
+    
+    
+def test_get_statistics_by_id_training(mongo_mock, monkeypatch):
+    monkeypatch.setattr("app.trainings.trainings.ServiceUsers.get", mock_get_all_users)
+    client.post(f"/trainings/{training_id_example_mock}/score", headers={"Authorization": f"Bearer {access_token_trainer_example}"}, json={"qualification": 5})
+    client.post(f"/trainings/{training_id_example_mock}/comment", headers={"Authorization": f"Bearer {access_token_trainer_example}"}, json={"detail": "comment1"})
+    client.post(f"/trainings/{training_id_example_mock}/comment", headers={"Authorization": f"Bearer {access_token_trainer_example}"}, json={"detail": "comment2"})
+    client.post(f"/trainings/{training_id_example_mock}/comment", headers={"Authorization": f"Bearer {access_token_trainer_example}"}, json={"detail": "comment3"})
+
+
+    response = client.get(f"/trainings/{training_id_example_mock}/statistics")
+    assert response.status_code == 200
+
+    response_body = response.json()
+    assert response_body == dict({
+        'count_favorites': 0,
+        'count_scores': 1,
+        'count_comments': 3
+    })
+    
+    

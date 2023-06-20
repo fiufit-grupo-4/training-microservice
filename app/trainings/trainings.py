@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from passlib.context import CryptContext
 from starlette import status
 from typing import List, Optional
+from app.services import ServiceUsers
 from app.trainings.models import (
     StateTraining,
     TrainingQueryParamsFilter,
@@ -193,3 +194,42 @@ async def get_training_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             content=f'Failed to search training {training_id}',
         )
+
+
+@router_trainings.get(
+    "/{training_id}/statistics",
+    status_code=status.HTTP_200_OK,
+    summary="Get a specific training statistics by training_id",
+)
+async def get_statistics_training_by_id(
+    request: Request, training_id: ObjectIdPydantic
+):
+    trainings = request.app.database["trainings"]
+
+    training = trainings.find_one({"_id": training_id})
+
+    if training is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f'Training {training_id} not found to get',
+        )
+
+    count_scores = len(training["scores"])
+    count_comments = len(training["comments"])
+    count_favorites = 0
+    users = (await ServiceUsers.get("/users/?map_trainings=false")).json()
+
+    for user in users:
+        for training_favorite in user["trainings"]:
+            if training_favorite["id_training"] == str(training_id):
+                count_favorites += 1
+                break
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "count_favorites": count_favorites,
+            "count_scores": count_scores,
+            "count_comments": count_comments,
+        },
+    )
