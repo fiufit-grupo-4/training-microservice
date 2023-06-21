@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 from black import nullcontext
 from bson import ObjectId
 from requests.models import Response

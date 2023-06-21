@@ -10,7 +10,7 @@ from app.trainings.models import (
     TrainingResponse,
     UpdateTrainingRequest,
 )
-
+from app.definitions import DELETE_TRAINING, MEDIA_UPLOAD, NEW_TRAINING
 from fastapi import Depends, HTTPException, status
 from starlette.responses import JSONResponse
 
@@ -47,7 +47,7 @@ def get_all_data_of_access_token(token: str = Depends(JWTBearer())):
     "/",
     response_model=TrainingResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create training by me",
+    summary="Create training",
 )
 async def add_training(
     request: Request,
@@ -64,6 +64,11 @@ async def add_training(
     request.app.logger.info(f'New training {training_id} created.')
 
     if res := TrainingResponse.from_mongo(training_mongo):
+        request.state.metrics_allowed = True
+        request.state.user_id = str(id_trainer)
+        request.state.action = NEW_TRAINING
+        request.state.training_id = str(training_id)
+        request.state.training_type = str(res.type).split(".")[-1]
         await TrainingResponse.map_users([res])
         return res
     else:
@@ -146,6 +151,11 @@ async def update_training(
         {"_id": training_id}, {"$set": fields_to_change}
     )
     if update_result.modified_count > 0:
+        if fields_to_change.get('media'):
+            request.state.metrics_allowed = True
+            request.state.action = MEDIA_UPLOAD
+            request.state.user_id = str(id_trainer)
+            request.state.training_id = str(training_id)
         request.app.logger.info(
             f'Updating training {training_id} values {list(fields_to_change.keys())}'
         )
@@ -173,6 +183,10 @@ def delete_training(
     result = trainings.delete_one({"_id": training_id, "id_trainer": id_trainer})
     if result.deleted_count == 1:
         request.app.logger.info(f'Deleting training {training_id}')
+        request.state.metrics_allowed = True
+        request.state.user_id = str(id_trainer)
+        request.state.action = DELETE_TRAINING
+        request.state.training_id = str(training_id)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=f'Training {training_id} deleted successfully',
