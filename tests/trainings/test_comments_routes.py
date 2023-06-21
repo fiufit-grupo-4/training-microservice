@@ -49,7 +49,7 @@ def mongo_mock(monkeypatch):
 
 
 def test_post_comment_success(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
     training_id = training["id"]
@@ -62,12 +62,12 @@ def test_post_comment_success(mongo_mock):
     assert response.status_code == 201
     assert response.json().get("detail") == "AsdAsd"
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["comments"][0].get("detail") == "AsdAsd"
     
 # user puede comentar muchas veces un mismo training, no es unico!
 def test_post_comment_multiple_times_success(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
     training_id = training["id"]
@@ -89,12 +89,12 @@ def test_post_comment_multiple_times_success(mongo_mock):
     assert response.status_code == 201
     assert response.json().get("detail") == "AsdAsd2"
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["comments"][0].get("detail") == "AsdAsd1"
     assert training["comments"][1].get("detail") == "AsdAsd2"
     
 def test_post_comment_invalids(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
     training_id = training["id"]
@@ -114,13 +114,13 @@ def test_post_comment_invalids(mongo_mock):
     
     assert response.status_code == 422
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
 
     
 def test_modify_comment_success(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
     training_id = training["id"]
@@ -135,7 +135,7 @@ def test_modify_comment_success(mongo_mock):
     res.pop("id")
     assert res.get("detail") == "AsdAsd"
     
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
 
     comment_id = training["comments"][0]["id"]
 
@@ -148,12 +148,12 @@ def test_modify_comment_success(mongo_mock):
     assert response.status_code == 200
 
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["comments"][0].get("detail") == "AsdAsd patched"
     
     
 def test_modify_comment_invalids(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
     training_id = training["id"]
@@ -167,7 +167,7 @@ def test_modify_comment_invalids(mongo_mock):
     res = response.json()
     assert res.get("detail") == "AsdAsd"
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     comment_id = training["comments"][0]["id"]
 
     response = client.patch(
@@ -186,12 +186,12 @@ def test_modify_comment_invalids(mongo_mock):
     
     assert response.status_code == 422
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["comments"][0].get("detail") == "AsdAsd"
     
 
 def test_delete_comment_success(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["comments"]
     
     training_id = training["id"]
@@ -203,7 +203,7 @@ def test_delete_comment_success(mongo_mock):
     
     assert response.status_code == 201
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     comment_id = training["comments"][0]["id"]
 
     response = client.delete(
@@ -212,5 +212,5 @@ def test_delete_comment_success(mongo_mock):
     )
     assert response.status_code == 200
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["comments"]

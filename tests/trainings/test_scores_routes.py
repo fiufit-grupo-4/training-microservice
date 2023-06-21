@@ -49,7 +49,7 @@ def mongo_mock(monkeypatch):
 
 
 def test_post_scores(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
     training_id = training["id"]
@@ -62,11 +62,11 @@ def test_post_scores(mongo_mock):
     assert response.status_code == 201
     assert response.json().get("qualification") == 5
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["scores"][0]["qualification"] == 5
 
 def test_post_scores_invalid(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
     training_id = training["id"]
@@ -78,11 +78,11 @@ def test_post_scores_invalid(mongo_mock):
     
     assert response.status_code == 422
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
 def test_post_scores_invalid_negative(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
     training_id = training["id"]
@@ -94,11 +94,11 @@ def test_post_scores_invalid_negative(mongo_mock):
     
     assert response.status_code == 422
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
 def test_post_scores_invalid_zero(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
     training_id = training["id"]
@@ -110,11 +110,11 @@ def test_post_scores_invalid_zero(mongo_mock):
     
     assert response.status_code == 422
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
 def test_post_score_its_unique_by_user(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
     training_id = training["id"]
@@ -127,7 +127,7 @@ def test_post_score_its_unique_by_user(mongo_mock):
     assert response.status_code == 201
     assert response.json().get("qualification") == 5
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["scores"][0]["qualification"] == 5
 
     response = client.post(
@@ -138,11 +138,11 @@ def test_post_score_its_unique_by_user(mongo_mock):
     
     assert response.status_code == 409
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["scores"][0]["qualification"] == 5
     
 def test_patch_score_success(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
     training_id = training["id"]
@@ -155,7 +155,7 @@ def test_patch_score_success(mongo_mock):
     assert response.status_code == 201
     assert response.json().get("qualification") == 5
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["scores"][0].get("qualification") == 5
 
     response = client.patch(
@@ -166,11 +166,11 @@ def test_patch_score_success(mongo_mock):
     
     assert response.status_code == 200
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["scores"][0].get("qualification") == 3
     
 def test_patch_score_invalids(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
     training_id = training["id"]
@@ -183,7 +183,7 @@ def test_patch_score_invalids(mongo_mock):
     assert response.status_code == 201
     assert response.json().get("qualification") == 5
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["scores"][0]["qualification"] == 5
 
     score_id = training["scores"][0]
@@ -212,11 +212,11 @@ def test_patch_score_invalids(mongo_mock):
     
     assert response.status_code == 422
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert training["scores"][0].get("qualification") == 5
     
 def test_delete_score_success(mongo_mock):
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]
     
     training_id = training["id"]
@@ -229,7 +229,7 @@ def test_delete_score_success(mongo_mock):
     assert response.status_code == 201
     assert response.json().get("qualification") == 5
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     logger.warning(training)
     assert training["scores"][0]["qualification"] == 5
 
@@ -240,5 +240,5 @@ def test_delete_score_success(mongo_mock):
     
     assert response.status_code == 200
 
-    training = client.get("/trainings", json={"title": "A"}).json()[0]
+    training = client.get("/trainings?map_users=false&map_states=false", json={"title": "A"}).json()[0]
     assert not training["scores"]

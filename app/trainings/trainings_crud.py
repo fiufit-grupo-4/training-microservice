@@ -31,6 +31,18 @@ def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
         )
 
 
+def get_all_data_of_access_token(token: str = Depends(JWTBearer())):
+    """Get all data from the token"""
+
+    try:
+        token_data_trainer = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return token_data_trainer
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token invalid!"
+        )
+
+
 @router_trainers.post(
     "/",
     response_model=TrainingResponse,
