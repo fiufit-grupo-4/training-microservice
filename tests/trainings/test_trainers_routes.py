@@ -21,7 +21,7 @@ training_example_mock = {
     "id_trainer": ObjectId(trainer_id_example_mock),
     "title": "A",
     "description": "string",
-    "type": "Caminata",
+    "type": "Walking",
     "difficulty": 1,
     "media": [
         {"media_type": "image", "url": "chauuu.png"},
@@ -69,7 +69,7 @@ def test_post_training(mongo_mock):
     data = {
         "title": "B",
         "description": "BABA",
-        "type": "Caminata",
+        "type": "Walking",
         "difficulty": 1
     }
 
@@ -86,7 +86,7 @@ def test_post_training(mongo_mock):
     assert response_body == {
         "title": "B",
         "description": "BABA",
-        "type": "Caminata",
+        "type": "Walking",
         "difficulty": 1,
         "media": [],
         "blocked": False,
@@ -105,7 +105,7 @@ def test_post_training_failed(mongo_mock, monkeypatch):
     data = {
         "title": "B",
         "description": "BABA",
-        "type": "Caminata",
+        "type": "Walking",
         "difficulty": 1
     }
     monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_fail)

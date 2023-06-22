@@ -16,7 +16,7 @@ training_example_mock = {
     "id_trainer": trainer_id_example_mock,
     "title": "A",
     "description": "string",
-    "type": "Caminata",
+    "type": "Walking",
     "difficulty": 1,
     "media": [
         {"media_type": "image", "url": "chauuu.png"},
