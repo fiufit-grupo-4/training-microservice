@@ -12,6 +12,12 @@ import app.main as main
 ########################################################################
 
 
+class GoalTypes(str, Enum):
+    KILOMETERS = "Kilometers"
+    STEPS = "Steps"
+    Calories = "Calories"
+
+
 class UserRoles(int, Enum):
     ADMIN = 1
     TRAINER = 2
@@ -23,6 +29,7 @@ class StateGoal(int, Enum):
     INIT = 2
     COMPLETE = 3
     STOP = 4
+    EXPIRED = 5
 
 
 class StateTraining(str, Enum):
@@ -36,8 +43,8 @@ class StateTraining(str, Enum):
 class GoalOfTraining(BaseModel):
     title: str
     description: str
-    metric: str
-    quantity_steps: int = 0
+    metric: GoalTypes = GoalTypes.STEPS.value
+    quantity_steps: float = 0
 
 
 class TrainingTypes(str, Enum):
