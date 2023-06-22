@@ -41,8 +41,14 @@ class GoalOfTraining(BaseModel):
 
 
 class TrainingTypes(str, Enum):
-    caminata = "Caminata"
-    running = "Running"
+    WALKING = "Walking"
+    RUNNING = "Running"
+    RESISTANCE = "Resistance"
+    FLEXIBILITY = "Flexibility"
+    BALANCE = "Balance"
+    YOGA = "Yoga"
+    CALISTHENICS = "Calisthenics"
+    FITNESS = "Fitness"
 
 
 class MediaType(str, Enum):
