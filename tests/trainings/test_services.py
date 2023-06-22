@@ -29,7 +29,7 @@ training_example_mock = {
     "goals" : [    {
       "title": "A",
       "description": "A asd",
-      "metric": "kcal",
+      "metric": "Calories",
       "quantity_steps": 100
     },    {
       "title": "B",
