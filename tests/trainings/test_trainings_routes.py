@@ -32,6 +32,21 @@ training_example_mock = {
     "comments": []
 }
 
+blocked_training_example_mock = {
+    "id_trainer": trainer_id_example_mock,
+    "title": "A",
+    "description": "string",
+    "type": "Caminata",
+    "difficulty": 1,
+    "media": [
+        {"media_type": "image", "url": "chauuu.png"},
+        {"media_type": "video", "url": "hola.mp4"},
+    ],
+    "blocked": True,
+    "scores": [],
+    "comments": []
+}
+
 access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
 
 async def mock_get_fail(*args, **kwargs):
@@ -58,6 +73,7 @@ def mongo_mock(monkeypatch):
     db = mongo_client.get_database("training_microservice")
     col = db.get_collection("trainings")
     result = col.insert_one(training_example_mock)
+    col.insert_one(blocked_training_example_mock)
 
     global training_id_example_mock
     training_id_example_mock = result.inserted_id
@@ -73,6 +89,8 @@ def test_get_trainings(mongo_mock):
     assert response.status_code == 200
 
     response_body = response.json()
+    # if the blocked training was retrieved then len should be 2 instead of 1
+    assert len(response_body) == 1
     assert all(item in response_body[0] for item in {
         'blocked': False,
         'description': 'string',

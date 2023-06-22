@@ -60,6 +60,8 @@ async def get_trainings(
 
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
+        if training["blocked"]:
+            continue
         if map_states:
             update_states_to_visualizate(
                 training, request.app.database["athletes_states"], request
