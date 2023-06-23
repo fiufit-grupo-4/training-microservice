@@ -1,4 +1,5 @@
 import logging
+from app.trainings.athletes import stop_an_training
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from passlib.context import CryptContext
@@ -60,8 +61,6 @@ async def get_trainings(
 
     trainings_list = []
     for training in trainings.find(queries.dict(exclude_none=True)).limit(limit):
-        if training["blocked"]:
-            continue
         if map_states:
             update_states_to_visualizate(
                 training, request.app.database["athletes_states"], request
@@ -88,7 +87,7 @@ async def get_trainings(
 
 
 @router_trainings.patch('/{training_id}/block', status_code=status.HTTP_200_OK)
-def block_status(training_id: ObjectIdPydantic, request: Request):
+async def block_status(training_id: ObjectIdPydantic, request: Request):
     trainings = request.app.database["trainings"]
     training = trainings.find_one({"_id": training_id})
 
@@ -111,6 +110,18 @@ def block_status(training_id: ObjectIdPydantic, request: Request):
     )
 
     if update_result.modified_count > 0:
+        athletes_states = request.app.database["athletes_states"]
+        states_for_training = athletes_states.find(
+            {"training_id": ObjectId(training_id)}
+        )
+        for state in states_for_training:
+            if state["state"] == StateTraining.INIT.value:
+                logger.warning(
+                    f'Stop training {training_id} for user {state["user_id"]}'
+                )
+                res = await stop_an_training(request, training_id, state["user_id"])
+                logger.warning(f'Result of stop training {res.status_code} of user {state["user_id"]}')
+
         request.app.logger.info(f'Training {training_id} was successfully blocked')
         return JSONResponse(
             status_code=status.HTTP_200_OK,

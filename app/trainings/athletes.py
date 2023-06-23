@@ -219,17 +219,7 @@ async def start_training(
             )
 
 
-@router_athletes.patch(
-    '/{training_id}/stop',
-    status_code=status.HTTP_200_OK,
-    dependencies=[Depends(is_athlete)],
-)
-async def stop_training(
-    request: Request,
-    training_id: ObjectIdPydantic = Depends(exist_training),
-    data_access_token=Depends(get_all_data_of_access_token),
-):
-    id_user = data_access_token["id"]
+async def stop_an_training(request: Request, training_id: ObjectId, id_user: str):
     athletes_states = request.app.database["athletes_states"]
     result_find = athletes_states.find_one(
         {"user_id": ObjectId(id_user), "training_id": training_id}
@@ -296,6 +286,19 @@ async def stop_training(
         content=f"Training {training_id} could not"
         + f" be STOPPED for athlete {id_user}",
     )
+
+
+@router_athletes.patch(
+    '/{training_id}/stop',
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(is_athlete)],
+)
+async def stop_training(
+    request: Request,
+    training_id: ObjectIdPydantic = Depends(exist_training),
+    data_access_token=Depends(get_all_data_of_access_token),
+):
+    return await stop_an_training(request, training_id, data_access_token["id"])
 
 
 @router_athletes.patch(
