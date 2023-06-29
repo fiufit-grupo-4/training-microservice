@@ -1,7 +1,7 @@
 import functools
 import json
-import os
 import pika
+from app.config.config import Settings
 import app.main as main
 
 from pika.adapters.asyncio_connection import AsyncioConnection
@@ -16,6 +16,8 @@ from app.publisher.queue_settings import EXCHANGE, EXCHANGE_TYPE, QUEUE, ROUTING
 # - https://pika.readthedocs.io/en/stable/examples.html
 # - https://github.com/pika/pika/blob/main/examples/asynchronous_publisher_example.py
 # - https://github.com/pika/pika/blob/main/examples/asyncio_consumer_example.py
+
+app_settings = Settings()
 
 
 class PublisherQueue:
@@ -364,7 +366,7 @@ class PublisherQueue:
 
 
 def getPublisherQueue() -> PublisherQueue:
-    return PublisherQueue(os.environ["CLOUDAMQP_URL"])
+    return PublisherQueue(app_settings.CLOUDAMQP_URL)
 
 
 async def runPublisherManager():

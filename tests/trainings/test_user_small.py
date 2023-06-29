@@ -1,8 +1,5 @@
-from dotenv import load_dotenv
-load_dotenv()
-from bson import ObjectId
+
 from fastapi import Response
-import pytest
 from app.trainings.user_small import UserResponseSmall
 
 

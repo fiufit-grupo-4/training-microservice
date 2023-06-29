@@ -1,11 +1,11 @@
 import asyncio
 import pymongo
-from fastapi import FastAPI
 import logging
+
+from fastapi import FastAPI
 from logging.config import dictConfig
-from .log_config import logconfig
-from os import environ
-from dotenv import load_dotenv
+from app.config.config import Settings
+from .config.log_config import logconfig
 from app.publisher.publisher_queue import runPublisherManager
 from app.publisher.publisher_queue_middleware import PublisherQueueEventMiddleware
 from app.trainings.athletes import router_athletes
@@ -15,12 +15,9 @@ from app.trainings.scores import router_scores
 from app.trainings.comments import router_comments
 
 
-load_dotenv()
-
-MONGODB_URI = environ["MONGODB_URI"]
-
 dictConfig(logconfig)
 app = FastAPI()
+app_settings = Settings()
 logger = logging.getLogger("app")
 
 app.add_middleware(PublisherQueueEventMiddleware)
@@ -29,16 +26,15 @@ app.add_middleware(PublisherQueueEventMiddleware)
 @app.on_event("startup")
 async def startup_db_client():
     try:
-        app.mongodb_client = pymongo.MongoClient(MONGODB_URI)
+        app.mongodb_client = pymongo.MongoClient(app_settings.MONGODB_URI)
         logger.info("Connected successfully MongoDB")
-
     except Exception as e:
         logger.error(e)
         logger.error("Could not connect to MongoDB")
 
     app.logger = logger
-
     app.database = app.mongodb_client["training_microservice"]
+
     app.task_publisher_manager = asyncio.create_task(runPublisherManager())
     # app.database.trainings.delete_many({})
 

@@ -5,7 +5,7 @@ from requests.models import Response
 from fastapi.testclient import TestClient
 from app.main import app, logger
 from app.services import ServiceGoals, ServiceUsers
-from app.settings.auth_settings import Settings
+from app.config.auth_settings import SettingsAuth
 from app.trainings.models import StateTraining, UserRoles
 from starlette import status
 
@@ -45,7 +45,7 @@ training_example_mock = {
     }]
 }
 
-access_token_trainer_example = Settings.generate_token_with_role(trainer_id_example_mock, UserRoles.TRAINER)
+access_token_trainer_example = SettingsAuth.generate_token_with_role(trainer_id_example_mock, UserRoles.TRAINER)
 
 async def mock_get_user_service_ok(*args, **kwargs):
     response = Response()

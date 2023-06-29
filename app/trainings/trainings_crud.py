@@ -1,9 +1,8 @@
 from typing import List, Optional
 from bson import ObjectId
 import jwt
-from app.settings.auth_baerer import JWTBearer
+from app.config.auth_baerer import JWTBearer
 from fastapi import APIRouter, Query, Request
-from app.settings.auth_settings import JWT_SECRET
 from app.trainings.models import (
     TrainingQueryParamsFilter,
     TrainingRequestPost,
@@ -13,9 +12,10 @@ from app.trainings.models import (
 from app.definitions import DELETE_TRAINING, MEDIA_UPLOAD, NEW_TRAINING
 from fastapi import Depends, HTTPException, status
 from starlette.responses import JSONResponse
-
 from app.trainings.object_id import ObjectIdPydantic
+from app.config.config import Settings
 
+app_settings = Settings()
 router_trainers = APIRouter()
 
 
@@ -23,7 +23,9 @@ def get_user_id(token: str = Depends(JWTBearer())) -> ObjectId:
     """Get user id from the token"""
 
     try:
-        token_data_trainer = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        token_data_trainer = jwt.decode(
+            token, app_settings.JWT_SECRET, algorithms=app_settings.JWT_ALGORITHM
+        )
         return ObjectId(token_data_trainer["id"])
     except Exception:
         raise HTTPException(
@@ -35,7 +37,9 @@ def get_all_data_of_access_token(token: str = Depends(JWTBearer())):
     """Get all data from the token"""
 
     try:
-        token_data_trainer = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        token_data_trainer = jwt.decode(
+            token, app_settings.JWT_SECRET, algorithms=app_settings.JWT_ALGORITHM
+        )
         return token_data_trainer
     except Exception:
         raise HTTPException(

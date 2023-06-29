@@ -3,7 +3,13 @@
 
 [![codecov](https://codecov.io/gh/fiufit-grupo-4/training-microservice/branch/main/graph/badge.svg?token=dcyLtBb60x)](https://codecov.io/gh/fiufit-grupo-4/training-microservice) [![Dev Checks](https://github.com/fiufit-grupo-4/training-microservice/actions/workflows/dev-checks.yml/badge.svg)](https://github.com/fiufit-grupo-4/training-microservice/actions/workflows/dev-checks.yml)
 
-## Docker
+This microservice is in charge of managing the trainings of the users-trainers of the system. It has the basic CRUD of a training with their respective goals. In addition, each training has the functionality to start, pause and complete the training according to the athlete who is performing it. It also implements the basic CRUD of a system of comments and scores for each training.
+
+# Documentation
+
+The link to the API documentation of this microservice can be found in the corresponding Swagger: [API Documentation - Training Microservice](https://training-service-fiufit.herokuapp.com/docs)
+
+# Docker
 
 ### Build container:
 
@@ -12,10 +18,6 @@
 ### Start services:
 
 ```$ docker-compose up```
-
-### List images:
-
-```$ docker images```
 
 ### Remove dangling images: 
 
@@ -29,7 +31,7 @@ Its **recommended** to run this command before ```docker-compose up``` to avoid 
 
 ```$ docker system prune -a --volumes```
 
-## Dependencies
+# Dependencies
 
 After any change in *pyproject.toml* file (always execute this before installing):
 
@@ -43,9 +45,9 @@ After any change in *pyproject.toml* file (always execute this before installing
 
 ```$ poetry install```
 
-## Tests
+# Tests
 
-### Run tests with pytest for unit tests (TDD)
+### Run tests:
 
 ```$ poetry run pytest tests```
 

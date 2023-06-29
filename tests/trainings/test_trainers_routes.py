@@ -1,5 +1,4 @@
-from dotenv import load_dotenv
-load_dotenv()
+
 from black import nullcontext
 from bson import ObjectId
 from requests.models import Response
@@ -9,7 +8,8 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.main import logger
 
-from app.settings.auth_settings import Settings
+from app.config.auth_settings import SettingsAuth
+from app.trainings.models import UserRoles
 from app.trainings.object_id import ObjectIdPydantic
 
 
@@ -33,7 +33,7 @@ training_example_mock = {
 }
 
 
-access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
+access_token_trainer_example = SettingsAuth.generate_token_with_role(trainer_id_example_mock, UserRoles.ATLETA)
 
 async def mock_get_fail(*args, **kwargs):
     response = Response()
@@ -109,7 +109,7 @@ def test_post_training_failed(mongo_mock, monkeypatch):
         "difficulty": 1
     }
     monkeypatch.setattr("app.services.ServiceUsers.get", mock_get_fail)
-    access_token_trainer_example_other = Settings.generate_token(str("6465a459b9cb604fdd382a28"))
+    access_token_trainer_example_other = SettingsAuth.generate_token_with_role(str("6465a459b9cb604fdd382a28"), UserRoles.ATLETA)
     response = client.post(
         "trainers/me/trainings/",
         json=data,

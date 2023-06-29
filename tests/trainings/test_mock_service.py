@@ -1,5 +1,4 @@
-from dotenv import load_dotenv
-load_dotenv()
+
 from bson import ObjectId
 from requests.models import Response
 import pytest

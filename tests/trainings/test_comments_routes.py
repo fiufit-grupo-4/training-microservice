@@ -1,12 +1,12 @@
-from dotenv import load_dotenv
-load_dotenv()
+
 from bson import ObjectId
 import mongomock
 import pytest
 from requests.models import Response
 from fastapi.testclient import TestClient
 from app.main import app, logger
-from app.settings.auth_settings import Settings
+from app.config.auth_settings import SettingsAuth
+from app.trainings.models import UserRoles
 
 client = TestClient(app)
 
@@ -27,7 +27,7 @@ training_example_mock = {
     "comments": []
 }
 
-access_token_trainer_example = Settings.generate_token(trainer_id_example_mock)
+access_token_trainer_example = SettingsAuth.generate_token_with_role(trainer_id_example_mock, UserRoles.ATLETA)
 
 async def mock_get(*args, **kwargs):
     response = Response()

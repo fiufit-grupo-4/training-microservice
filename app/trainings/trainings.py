@@ -120,7 +120,10 @@ async def block_status(training_id: ObjectIdPydantic, request: Request):
                     f'Stop training {training_id} for user {state["user_id"]}'
                 )
                 res = await stop_an_training(request, training_id, state["user_id"])
-                logger.warning(f'Result of stop training {res.status_code} of user {state["user_id"]}')
+                logger.warning(
+                    f'Result of stop training {res.status_code}'
+                    + f' of user {state["user_id"]}'
+                )
 
         request.app.logger.info(f'Training {training_id} was successfully blocked')
         return JSONResponse(
